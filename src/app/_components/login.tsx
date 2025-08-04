@@ -1,9 +1,10 @@
+// src/app/_components/login.tsx
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react"; // Importe signIn
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,25 +33,28 @@ function Login() {
     setMessage(null);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
 
-      // Mock successful login
-      if (email === "admin@example.com" && password === "password123") {
-        setMessage({ type: "success", text: "Login successful!" });
+      if (result?.ok) {
+        setMessage({ type: "success", text: "Login bem-sucedido!" });
         setTimeout(() => {
           router.push("/dashboard");
         }, 1000);
       } else {
         setMessage({
           type: "error",
-          text: "Login failed. Please check your credentials.",
+          text: result?.error || "Login falhou. Verifique suas credenciais.",
         });
       }
     } catch (error) {
+      console.error("Erro durante o login:", error);
       setMessage({
         type: "error",
-        text: "Login failed. Please check your credentials.",
+        text: "Login falhou. Por favor, tente novamente.",
       });
     } finally {
       setIsLoading(false);
@@ -62,7 +66,7 @@ function Login() {
       <CardHeader>
         <CardTitle>Login</CardTitle>
         <CardDescription>
-          Enter your credentials to access your account
+          Insira suas credenciais para acessar sua conta
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -72,18 +76,18 @@ function Login() {
             <Input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder="Insira seu email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Senha</Label>
             <Input
               id="password"
               type="password"
-              placeholder="Enter your password"
+              placeholder="Insira sua senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -97,10 +101,10 @@ function Login() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Logging in...
+                Entrando...
               </>
             ) : (
-              "Login"
+              "Entrar"
             )}
           </Button>
           {message && (
@@ -113,9 +117,9 @@ function Login() {
             </div>
           )}
           <div className="text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            Não tem uma conta?{" "}
             <a href="/register" className="text-primary hover:underline">
-              Register here
+              Registre-se aqui
             </a>
           </div>
         </form>

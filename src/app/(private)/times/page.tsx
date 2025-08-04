@@ -1,8 +1,8 @@
+// src/app/(private)/times/page.tsx
 "use client";
 
 import type React from "react";
-
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Adicionado useEffect
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,23 +31,7 @@ interface Team {
 
 export default function TimesPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [teams, setTeams] = useState<Team[]>([
-    {
-      id: "1",
-      name: "Barcelona FC",
-      image: "/placeholder.svg?height=200&width=200",
-    },
-    {
-      id: "2",
-      name: "Real Madrid",
-      image: "/placeholder.svg?height=200&width=200",
-    },
-    {
-      id: "3",
-      name: "Manchester United",
-      image: "/placeholder.svg?height=200&width=200",
-    },
-  ]);
+  const [teams, setTeams] = useState<Team[]>([]); // Inicie com um array vazio
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
@@ -55,6 +39,25 @@ export default function TimesPage() {
     text: string;
   } | null>(null);
   const [newTeam, setNewTeam] = useState({ name: "", image: "" });
+
+  // Função para buscar times
+  const fetchTeams = async () => {
+    try {
+      const response = await fetch("/api/teams");
+      if (!response.ok) {
+        throw new Error("Falha ao buscar times");
+      }
+      const data: Team[] = await response.json();
+      setTeams(data);
+    } catch (error) {
+      console.error("Erro ao buscar times:", error);
+      setMessage({ type: "error", text: "Erro ao carregar times." });
+    }
+  };
+
+  useEffect(() => {
+    fetchTeams(); // Carrega os times quando o componente é montado
+  }, []);
 
   const filteredTeams = teams.filter((team) =>
     team.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -66,27 +69,32 @@ export default function TimesPage() {
     setMessage(null);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const response = await fetch("/api/teams", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newTeam),
+      });
 
-      const team: Team = {
-        id: Date.now().toString(),
-        name: newTeam.name,
-        image: newTeam.image || "/placeholder.svg?height=200&width=200",
-      };
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Falha ao adicionar time.");
+      }
 
-      setTeams((prev) => [...prev, team]);
-      setMessage({ type: "success", text: "Team added successfully!" });
+      const addedTeam: Team = await response.json();
+      setTeams((prev) => [...prev, addedTeam]);
+      setMessage({ type: "success", text: "Time adicionado com sucesso!" });
       setNewTeam({ name: "", image: "" });
 
       setTimeout(() => {
         setIsSheetOpen(false);
         setMessage(null);
       }, 1500);
-    } catch (error) {
+    } catch (error: any) {
       setMessage({
         type: "error",
-        text: "Failed to add team. Please try again.",
+        text: error.message,
       });
     } finally {
       setIsLoading(false);
@@ -97,12 +105,12 @@ export default function TimesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Times</h1>
-        <p className="text-muted-foreground">Manage your football teams</p>
+        <p className="text-muted-foreground">Gerencie seus times de futebol</p>
       </div>
 
       <div className="flex gap-4">
         <Input
-          placeholder="Search teams..."
+          placeholder="Buscar times..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1"
@@ -116,17 +124,18 @@ export default function TimesPage() {
           </SheetTrigger>
           <SheetContent>
             <SheetHeader>
-              <SheetTitle>Add New Team</SheetTitle>
+              <SheetTitle>Adicionar Novo Time</SheetTitle>
               <SheetDescription>
-                Enter the team details to add a new team to your system.
+                Insira os detalhes do time para adicionar um novo time ao seu
+                sistema.
               </SheetDescription>
             </SheetHeader>
             <form onSubmit={handleAddTeam} className="space-y-4 mt-6">
               <div className="space-y-2">
-                <Label htmlFor="teamImage">Image Link</Label>
+                <Label htmlFor="teamImage">Link da Imagem</Label>
                 <Input
                   id="teamImage"
-                  placeholder="Enter image URL"
+                  placeholder="Insira a URL da imagem"
                   value={newTeam.image}
                   onChange={(e) =>
                     setNewTeam((prev) => ({ ...prev, image: e.target.value }))
@@ -134,10 +143,10 @@ export default function TimesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="teamName">Team Name</Label>
+                <Label htmlFor="teamName">Nome do Time</Label>
                 <Input
                   id="teamName"
-                  placeholder="Enter team name"
+                  placeholder="Insira o nome do time"
                   value={newTeam.name}
                   onChange={(e) =>
                     setNewTeam((prev) => ({ ...prev, name: e.target.value }))
@@ -149,7 +158,7 @@ export default function TimesPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adding Team...
+                    Adicionando Time...
                   </>
                 ) : (
                   "Adicionar Time"
@@ -195,7 +204,7 @@ export default function TimesPage() {
               <div className="space-y-2">
                 <h4 className="font-semibold">{team.name}</h4>
                 <p className="text-sm text-muted-foreground">
-                  Team Information
+                  Informações do Time
                 </p>
               </div>
             </HoverCardContent>

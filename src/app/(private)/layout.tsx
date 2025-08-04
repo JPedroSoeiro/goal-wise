@@ -1,9 +1,11 @@
+// src/app/(private)/layout.tsx
 "use client";
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react"; // Importe useSession e signOut
 import {
   Sidebar,
   SidebarContent,
@@ -52,24 +54,35 @@ const menuItems = [
 ];
 
 function AppSidebar() {
+  const { data: session, status } = useSession(); // Use useSession para obter o status e dados da sessão
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-
     try {
-      // Simulate logout API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Redirect to login page
-      router.push("/");
+      await signOut({ redirect: false }); // Não redirecione automaticamente aqui
+      router.push("/"); // Redirecione manualmente para a página inicial
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
       setIsLoggingOut(false);
     }
   };
+
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center h-screen w-full">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!session) {
+    // Se não há sessão e não está carregando, redirecione para o login
+    router.push("/");
+    return null; // Não renderize nada enquanto redireciona
+  }
 
   return (
     <Sidebar>
@@ -80,7 +93,7 @@ function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -101,18 +114,19 @@ function AppSidebar() {
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="ghost" className="w-full justify-start">
-              John Doe
+              {session.user?.name || session.user?.email || "Usuário"}{" "}
+              {/* Exibe o nome ou email do usuário logado */}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Logout Confirmation</AlertDialogTitle>
+              <AlertDialogTitle>Confirmação de Logout</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to log out of the system?
+                Tem certeza que deseja sair do sistema?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleLogout}
                 className="bg-red-600 hover:bg-red-700"
@@ -121,10 +135,10 @@ function AppSidebar() {
                 {isLoggingOut ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Logging out...
+                    Saindo...
                   </>
                 ) : (
-                  "Logout"
+                  "Sair"
                 )}
               </AlertDialogAction>
             </AlertDialogFooter>

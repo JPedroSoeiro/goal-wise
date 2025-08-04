@@ -1,7 +1,7 @@
+// src/app/_components/register.tsx
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase"; // Importe o cliente Supabase
+import { signIn } from "next-auth/react"; // Importe signIn
 
 function Register() {
   const [fullName, setFullName] = useState("");
@@ -31,20 +33,56 @@ function Register() {
     setMessage(null);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName, // Exemplo de metadados adicionais
+          },
+        },
+      });
 
-      // Mock successful registration
-      setMessage({ type: "success", text: "Registration successful!" });
+      if (error) {
+        setMessage({
+          type: "error",
+          text:
+            error.message || "Falha no registro. Por favor, tente novamente.",
+        });
+        return;
+      }
+
+      if (data.user) {
+        setMessage({
+          type: "success",
+          text: "Registro bem-sucedido! Redirecionando para login...",
+        });
+        // Tenta logar o usuário automaticamente após o registro
+        await signIn("credentials", {
+          redirect: false,
+          email,
+          password,
+        });
+        // Após o registro e login, você pode redirecionar o usuário
+        setTimeout(() => {
+          window.location.href = "/dashboard"; // Redireciona para o dashboard
+        }, 1500);
+      } else {
+        setMessage({
+          type: "success",
+          text: "Registro bem-sucedido! Verifique seu e-mail para confirmar a conta.",
+        });
+      }
 
       // Reset form
       setFullName("");
       setEmail("");
       setPassword("");
     } catch (error) {
+      console.error("Erro durante o registro:", error);
       setMessage({
         type: "error",
-        text: "Registration failed. Please try again.",
+        text: "Falha no registro. Por favor, tente novamente.",
       });
     } finally {
       setIsLoading(false);
@@ -54,17 +92,17 @@ function Register() {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Register</CardTitle>
-        <CardDescription>Create a new account to get started</CardDescription>
+        <CardTitle>Registrar</CardTitle>
+        <CardDescription>Crie uma nova conta para começar</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
+            <Label htmlFor="fullName">Nome Completo</Label>
             <Input
               id="fullName"
               type="text"
-              placeholder="Enter your full name"
+              placeholder="Insira seu nome completo"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
@@ -75,18 +113,18 @@ function Register() {
             <Input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder="Insira seu email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Senha</Label>
             <Input
               id="password"
               type="password"
-              placeholder="Enter your password"
+              placeholder="Insira sua senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -100,10 +138,10 @@ function Register() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Registering...
+                Registrando...
               </>
             ) : (
-              "Register"
+              "Registrar"
             )}
           </Button>
           {message && (
@@ -116,9 +154,9 @@ function Register() {
             </div>
           )}
           <div className="text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
+            Já tem uma conta?{" "}
             <a href="/" className="text-primary hover:underline">
-              Login here
+              Entrar aqui
             </a>
           </div>
         </form>
