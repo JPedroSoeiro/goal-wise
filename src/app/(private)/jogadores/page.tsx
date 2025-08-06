@@ -1,8 +1,7 @@
 "use client";
 
 import type React from "react";
-
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Adicionado useEffect
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,39 +22,20 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Plus } from "lucide-react";
 import Image from "next/image";
 
+// A URL do seu back-end, configurada no .env.local
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface Player {
   id: string;
   name: string;
-  team: string;
+  teamId: number; // Mudei para number para corresponder ao schema do Drizzle
   position: string;
   image: string;
 }
 
 export default function JogadoresPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [players, setPlayers] = useState<Player[]>([
-    {
-      id: "1",
-      name: "Lionel Messi",
-      team: "Barcelona FC",
-      position: "Forward",
-      image: "/placeholder.svg?height=200&width=200",
-    },
-    {
-      id: "2",
-      name: "Cristiano Ronaldo",
-      team: "Real Madrid",
-      position: "Forward",
-      image: "/placeholder.svg?height=200&width=200",
-    },
-    {
-      id: "3",
-      name: "Marcus Rashford",
-      team: "Manchester United",
-      position: "Forward",
-      image: "/placeholder.svg?height=200&width=200",
-    },
-  ]);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
@@ -64,15 +44,33 @@ export default function JogadoresPage() {
   } | null>(null);
   const [newPlayer, setNewPlayer] = useState({
     name: "",
-    team: "",
+    teamId: "",
     position: "",
     image: "",
   });
 
+  // Função para buscar jogadores da API
+  const fetchPlayers = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/players`);
+      if (!response.ok) {
+        throw new Error("Falha ao buscar jogadores");
+      }
+      const data: Player[] = await response.json();
+      setPlayers(data);
+    } catch (error) {
+      console.error("Erro ao buscar jogadores:", error);
+      setMessage({ type: "error", text: "Erro ao carregar jogadores." });
+    }
+  };
+
+  useEffect(() => {
+    fetchPlayers(); // Chama a API assim que o componente é montado
+  }, []);
+
   const filteredPlayers = players.filter(
     (player) =>
       player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      player.team.toLowerCase().includes(searchTerm.toLowerCase()) ||
       player.position.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -82,29 +80,32 @@ export default function JogadoresPage() {
     setMessage(null);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const response = await fetch(`${API_URL}/api/players`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newPlayer),
+      });
 
-      const player: Player = {
-        id: Date.now().toString(),
-        name: newPlayer.name,
-        team: newPlayer.team,
-        position: newPlayer.position,
-        image: newPlayer.image || "/placeholder.svg?height=200&width=200",
-      };
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Falha ao adicionar jogador.");
+      }
 
-      setPlayers((prev) => [...prev, player]);
-      setMessage({ type: "success", text: "Player added successfully!" });
-      setNewPlayer({ name: "", team: "", position: "", image: "" });
+      const addedPlayer: Player = await response.json();
+      setPlayers((prev) => [...prev, addedPlayer]);
+      setMessage({ type: "success", text: "Jogador adicionado com sucesso!" });
+      setNewPlayer({ name: "", teamId: "", position: "", image: "" });
 
       setTimeout(() => {
         setIsSheetOpen(false);
         setMessage(null);
       }, 1500);
-    } catch (error) {
+    } catch (error: any) {
       setMessage({
         type: "error",
-        text: "Failed to add player. Please try again.",
+        text: error.message,
       });
     } finally {
       setIsLoading(false);
@@ -115,12 +116,14 @@ export default function JogadoresPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Jogadores</h1>
-        <p className="text-muted-foreground">Manage your football players</p>
+        <p className="text-muted-foreground">
+          Gerencie seus jogadores de futebol
+        </p>
       </div>
 
       <div className="flex gap-4">
         <Input
-          placeholder="Search players..."
+          placeholder="Buscar jogadores..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1"
@@ -164,13 +167,17 @@ export default function JogadoresPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="playerTeam">Player Team</Label>
+                <Label htmlFor="playerTeam">Player Team ID</Label>
                 <Input
                   id="playerTeam"
-                  placeholder="Enter player team"
-                  value={newPlayer.team}
+                  type="number"
+                  placeholder="Enter player team ID"
+                  value={newPlayer.teamId}
                   onChange={(e) =>
-                    setNewPlayer((prev) => ({ ...prev, team: e.target.value }))
+                    setNewPlayer((prev) => ({
+                      ...prev,
+                      teamId: e.target.value,
+                    }))
                   }
                   required
                 />
@@ -240,7 +247,7 @@ export default function JogadoresPage() {
               <div className="space-y-2">
                 <h4 className="font-semibold">{player.name}</h4>
                 <p className="text-sm text-muted-foreground">
-                  Team: {player.team}
+                  Team ID: {player.teamId}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Position: {player.position}

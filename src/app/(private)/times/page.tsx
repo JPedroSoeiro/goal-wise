@@ -1,8 +1,7 @@
-// src/app/(private)/times/page.tsx
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react"; // Adicionado useEffect
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,6 +22,9 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Plus } from "lucide-react";
 import Image from "next/image";
 
+// A URL do seu back-end, configurada no .env.local
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface Team {
   id: string;
   name: string;
@@ -31,7 +33,7 @@ interface Team {
 
 export default function TimesPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [teams, setTeams] = useState<Team[]>([]); // Inicie com um array vazio
+  const [teams, setTeams] = useState<Team[]>([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
@@ -40,10 +42,10 @@ export default function TimesPage() {
   } | null>(null);
   const [newTeam, setNewTeam] = useState({ name: "", image: "" });
 
-  // Função para buscar times
+  // Função para buscar times da API
   const fetchTeams = async () => {
     try {
-      const response = await fetch("/api/teams");
+      const response = await fetch(`${API_URL}/api/teams`);
       if (!response.ok) {
         throw new Error("Falha ao buscar times");
       }
@@ -56,7 +58,7 @@ export default function TimesPage() {
   };
 
   useEffect(() => {
-    fetchTeams(); // Carrega os times quando o componente é montado
+    fetchTeams();
   }, []);
 
   const filteredTeams = teams.filter((team) =>
@@ -69,7 +71,7 @@ export default function TimesPage() {
     setMessage(null);
 
     try {
-      const response = await fetch("/api/teams", {
+      const response = await fetch(`${API_URL}/api/teams`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
