@@ -25,69 +25,78 @@ import Image from "next/image";
 // A URL do seu back-end, configurada no .env.local
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-interface Team {
+interface Player {
   id: string;
   name: string;
+  teamId: number;
+  position: string;
   image: string;
 }
 
-export default function TimesPage() {
+export default function JogadoresPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
-  const [newTeam, setNewTeam] = useState({ name: "", image: "" });
+  const [newPlayer, setNewPlayer] = useState({
+    name: "",
+    teamId: "",
+    position: "",
+    image: "",
+  });
 
-  // Função para buscar times da API
-  const fetchTeams = async () => {
+  // Função para buscar jogadores da API
+  const fetchPlayers = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/teams`);
+      const response = await fetch(`${API_URL}/api/players`);
       if (!response.ok) {
-        throw new Error("Falha ao buscar times");
+        throw new Error("Falha ao buscar jogadores");
       }
-      const data: Team[] = await response.json();
-      setTeams(data);
+      const data: Player[] = await response.json();
+      setPlayers(data);
     } catch (error) {
-      console.error("Erro ao buscar times:", error);
-      setMessage({ type: "error", text: "Erro ao carregar times." });
+      console.error("Erro ao buscar jogadores:", error);
+      setMessage({ type: "error", text: "Erro ao carregar jogadores." });
     }
   };
 
   useEffect(() => {
-    fetchTeams();
+    fetchPlayers();
   }, []);
 
-  const filteredTeams = teams.filter((team) =>
-    team.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPlayers = players.filter(
+    (player) =>
+      player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      player.position.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddTeam = async (e: React.FormEvent) => {
+  const handleAddPlayer = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage(null);
 
     try {
-      const response = await fetch(`${API_URL}/api/teams`, {
+      const response = await fetch(`${API_URL}/api/players`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(newTeam),
+        body: JSON.stringify(newPlayer),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Falha ao adicionar time.");
+        throw new Error(errorData.error || "Falha ao adicionar jogador.");
       }
 
-      const addedTeam: Team = await response.json();
-      setTeams((prev) => [...prev, addedTeam]);
-      setMessage({ type: "success", text: "Time adicionado com sucesso!" });
-      setNewTeam({ name: "", image: "" });
+      const addedPlayer: Player = await response.json();
+      setPlayers((prev) => [...prev, addedPlayer]);
+      setMessage({ type: "success", text: "Jogador adicionado com sucesso!" });
+      setNewPlayer({ name: "", teamId: "", position: "", image: "" });
 
       setTimeout(() => {
         setIsSheetOpen(false);
@@ -106,13 +115,15 @@ export default function TimesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Times</h1>
-        <p className="text-muted-foreground">Gerencie seus times de futebol</p>
+        <h1 className="text-3xl font-bold">Jogadores</h1>
+        <p className="text-muted-foreground">
+          Gerencie seus jogadores de futebol
+        </p>
       </div>
 
       <div className="flex gap-4">
         <Input
-          placeholder="Buscar times..."
+          placeholder="Buscar jogadores..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1"
@@ -121,37 +132,67 @@ export default function TimesPage() {
           <SheetTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Adicionar Time
+              Adicionar Jogador
             </Button>
           </SheetTrigger>
           <SheetContent>
             <SheetHeader>
-              <SheetTitle>Adicionar Novo Time</SheetTitle>
+              <SheetTitle>Add New Player</SheetTitle>
               <SheetDescription>
-                Insira os detalhes do time para adicionar um novo time ao seu
-                sistema.
+                Enter the player details to add a new player to your system.
               </SheetDescription>
             </SheetHeader>
-            <form onSubmit={handleAddTeam} className="space-y-4 mt-6">
+            <form onSubmit={handleAddPlayer} className="space-y-4 mt-6">
               <div className="space-y-2">
-                <Label htmlFor="teamImage">Link da Imagem</Label>
+                <Label htmlFor="playerImage">Image Link</Label>
                 <Input
-                  id="teamImage"
-                  placeholder="Insira a URL da imagem"
-                  value={newTeam.image}
+                  id="playerImage"
+                  placeholder="Enter image URL"
+                  value={newPlayer.image}
                   onChange={(e) =>
-                    setNewTeam((prev) => ({ ...prev, image: e.target.value }))
+                    setNewPlayer((prev) => ({ ...prev, image: e.target.value }))
                   }
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="teamName">Nome do Time</Label>
+                <Label htmlFor="playerName">Player Name</Label>
                 <Input
-                  id="teamName"
-                  placeholder="Insira o nome do time"
-                  value={newTeam.name}
+                  id="playerName"
+                  placeholder="Enter player name"
+                  value={newPlayer.name}
                   onChange={(e) =>
-                    setNewTeam((prev) => ({ ...prev, name: e.target.value }))
+                    setNewPlayer((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="playerTeam">Player Team ID</Label>
+                <Input
+                  id="playerTeam"
+                  type="number"
+                  placeholder="Enter player team ID"
+                  value={newPlayer.teamId}
+                  onChange={(e) =>
+                    setNewPlayer((prev) => ({
+                      ...prev,
+                      teamId: e.target.value,
+                    }))
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="playerPosition">Player Position</Label>
+                <Input
+                  id="playerPosition"
+                  placeholder="Enter player position"
+                  value={newPlayer.position}
+                  onChange={(e) =>
+                    setNewPlayer((prev) => ({
+                      ...prev,
+                      position: e.target.value,
+                    }))
                   }
                   required
                 />
@@ -160,10 +201,10 @@ export default function TimesPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adicionando Time...
+                    Adding Player...
                   </>
                 ) : (
-                  "Adicionar Time"
+                  "Adicionar Jogador"
                 )}
               </Button>
               {message && (
@@ -183,30 +224,33 @@ export default function TimesPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {filteredTeams.map((team) => (
-          <HoverCard key={team.id}>
+        {filteredPlayers.map((player) => (
+          <HoverCard key={player.id}>
             <HoverCardTrigger asChild>
               <Card className="cursor-pointer hover:shadow-lg transition-shadow">
                 <CardContent className="p-4">
                   <div className="aspect-square relative mb-2">
                     <Image
-                      src={team.image || "/placeholder.svg"}
-                      alt={team.name}
+                      src={player.image || "/placeholder.svg"}
+                      alt={player.name}
                       fill
                       className="object-cover rounded-md"
                     />
                   </div>
                   <h3 className="font-semibold text-center truncate">
-                    {team.name}
+                    {player.name}
                   </h3>
                 </CardContent>
               </Card>
             </HoverCardTrigger>
             <HoverCardContent>
               <div className="space-y-2">
-                <h4 className="font-semibold">{team.name}</h4>
+                <h4 className="font-semibold">{player.name}</h4>
                 <p className="text-sm text-muted-foreground">
-                  Informações do Time
+                  Team ID: {player.teamId}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Position: {player.position}
                 </p>
               </div>
             </HoverCardContent>

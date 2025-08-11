@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react"; // Adicionado useEffect
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,7 +28,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 interface Player {
   id: string;
   name: string;
-  teamId: number; // Mudei para number para corresponder ao schema do Drizzle
+  teamId: number;
   position: string;
   image: string;
 }
@@ -65,7 +65,7 @@ export default function JogadoresPage() {
   };
 
   useEffect(() => {
-    fetchPlayers(); // Chama a API assim que o componente é montado
+    fetchPlayers();
   }, []);
 
   const filteredPlayers = players.filter(

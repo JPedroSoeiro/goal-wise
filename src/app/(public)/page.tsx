@@ -1,24 +1,11 @@
-// src/app/(public)/page.tsx
+import { LoginForm } from "../_components/login-form";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Login from "../_components/login";
-import Register from "../_components/register";
-
-export default function HomePage() {
+export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white">
-      <Tabs defaultValue="login" className="w-[400px]">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="login">Login</TabsTrigger>
-          <TabsTrigger value="register">Register</TabsTrigger>
-        </TabsList>
-        <TabsContent value="login">
-          <Login />
-        </TabsContent>
-        <TabsContent value="register">
-          <Register />
-        </TabsContent>
-      </Tabs>
+    <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
+      <div className="w-full max-w-sm md:max-w-3xl">
+        <LoginForm />
+      </div>
     </div>
   );
 }
