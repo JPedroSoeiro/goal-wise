@@ -1,3 +1,4 @@
+"use client";
 import {
   Table,
   TableBody,
@@ -14,12 +15,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+import { useSession } from "next-auth/react";
+
 export default function Dashboard() {
-  // Mock data - in real app, this would come from your database
   const stats = [
     { category: "Times", count: 12 },
     { category: "Liga", count: 3 },
   ];
+
+  const { data: session } = useSession();
+
+  console.log(session);
 
   return (
     <div className="space-y-6">
@@ -33,9 +39,7 @@ export default function Dashboard() {
       <Card>
         <CardHeader>
           <CardTitle>System Statistics</CardTitle>
-          <CardDescription>
-            Current counts of items in your system
-          </CardDescription>
+          <CardDescription>{session?.user.name}</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
