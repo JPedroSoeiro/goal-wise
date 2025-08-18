@@ -1,4 +1,5 @@
-import NextAuth, { AuthOptions } from "next-auth";
+import { AuthOptions, Session, User } from "next-auth";
+import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 // A URL do seu back-end, configurada no .env.local
@@ -77,11 +78,6 @@ export const authOptions: AuthOptions = {
       return session;
     },
   },
-  session: {
-    strategy: "jwt",
-  },
+
+  secret: process.env.AUTH_SECRET,
 };
-
-const handler = NextAuth(authOptions);
-
-export { handler as GET, handler as POST };

@@ -13,9 +13,10 @@ import { Loader2 } from "lucide-react";
 
 export function LoginForm({
   className,
+  onSwitchToRegister,
   ...props
 }: React.ComponentProps<"div"> & {
-  onSwitchToRegister?: () => void; // Nova prop para alternar para o registro
+  onSwitchToRegister?: () => void;
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,9 +41,8 @@ export function LoginForm({
 
       if (result?.ok) {
         setMessage({ type: "success", text: "Login bem-sucedido!" });
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1000);
+
+        router.push("/dashboard");
       } else {
         setMessage({
           type: "error",
@@ -132,7 +132,7 @@ export function LoginForm({
               <div className="text-center text-sm">
                 Não tem uma conta?{" "}
                 <a
-                  onClick={props.onSwitchToRegister}
+                  onClick={onSwitchToRegister}
                   className="underline underline-offset-4 cursor-pointer"
                 >
                   Registre-se

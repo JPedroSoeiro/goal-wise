@@ -7,20 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Sheet,
+  SheetTrigger,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
+  SheetDescription,
 } from "@/components/ui/sheet";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { Label } from "@/components/ui/label";
 import { Loader2, Plus } from "lucide-react";
 import Image from "next/image";
+import { AdcJogador } from "./_components/adc-jogador";
 
 // A URL do seu back-end, configurada no .env.local
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -36,18 +36,7 @@ interface Player {
 export default function JogadoresPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [players, setPlayers] = useState<Player[]>([]);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
-  const [newPlayer, setNewPlayer] = useState({
-    name: "",
-    teamId: "",
-    position: "",
-    image: "",
-  });
+  const [isSheetOpen, setIsSheetOpen] = useState(false); // Estado para controlar a Sheet
 
   // Função para buscar jogadores da API
   const fetchPlayers = async () => {
@@ -60,57 +49,25 @@ export default function JogadoresPage() {
       setPlayers(data);
     } catch (error) {
       console.error("Erro ao buscar jogadores:", error);
-      setMessage({ type: "error", text: "Erro ao carregar jogadores." });
+      // Aqui você pode adicionar um setMessage para a página se quiser exibir um erro
     }
   };
 
   useEffect(() => {
-    fetchPlayers();
+    fetchPlayers(); // Chama a API assim que o componente é montado
   }, []);
+
+  // Callback para AdcJogador adicionar um novo jogador à lista
+  const handlePlayerAdded = (newPlayer: Player) => {
+    setPlayers((prev) => [...prev, newPlayer]);
+    fetchPlayers(); // Opcional: refetch para garantir dados atualizados (ex: se o backend adicionar um ID)
+  };
 
   const filteredPlayers = players.filter(
     (player) =>
       player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       player.position.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleAddPlayer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setMessage(null);
-
-    try {
-      const response = await fetch(`${API_URL}/api/players`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newPlayer),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Falha ao adicionar jogador.");
-      }
-
-      const addedPlayer: Player = await response.json();
-      setPlayers((prev) => [...prev, addedPlayer]);
-      setMessage({ type: "success", text: "Jogador adicionado com sucesso!" });
-      setNewPlayer({ name: "", teamId: "", position: "", image: "" });
-
-      setTimeout(() => {
-        setIsSheetOpen(false);
-        setMessage(null);
-      }, 1500);
-    } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: error.message,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -142,83 +99,11 @@ export default function JogadoresPage() {
                 Enter the player details to add a new player to your system.
               </SheetDescription>
             </SheetHeader>
-            <form onSubmit={handleAddPlayer} className="space-y-4 mt-6">
-              <div className="space-y-2">
-                <Label htmlFor="playerImage">Image Link</Label>
-                <Input
-                  id="playerImage"
-                  placeholder="Enter image URL"
-                  value={newPlayer.image}
-                  onChange={(e) =>
-                    setNewPlayer((prev) => ({ ...prev, image: e.target.value }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="playerName">Player Name</Label>
-                <Input
-                  id="playerName"
-                  placeholder="Enter player name"
-                  value={newPlayer.name}
-                  onChange={(e) =>
-                    setNewPlayer((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="playerTeam">Player Team ID</Label>
-                <Input
-                  id="playerTeam"
-                  type="number"
-                  placeholder="Enter player team ID"
-                  value={newPlayer.teamId}
-                  onChange={(e) =>
-                    setNewPlayer((prev) => ({
-                      ...prev,
-                      teamId: e.target.value,
-                    }))
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="playerPosition">Player Position</Label>
-                <Input
-                  id="playerPosition"
-                  placeholder="Enter player position"
-                  value={newPlayer.position}
-                  onChange={(e) =>
-                    setNewPlayer((prev) => ({
-                      ...prev,
-                      position: e.target.value,
-                    }))
-                  }
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adding Player...
-                  </>
-                ) : (
-                  "Adicionar Jogador"
-                )}
-              </Button>
-              {message && (
-                <div
-                  className={`text-sm font-medium ${
-                    message.type === "success"
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {message.text}
-                </div>
-              )}
-            </form>
+            {/* Passa as funções para as props renomeadas */}
+            <AdcJogador
+              onPlayerAddedAction={handlePlayerAdded}
+              setIsSheetOpenAction={setIsSheetOpen}
+            />
           </SheetContent>
         </Sheet>
       </div>
