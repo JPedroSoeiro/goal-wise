@@ -78,7 +78,7 @@ export function AdcJogador({
 
   return (
     <form onSubmit={handleAddPlayer} className="space-y-4 mt-6">
-      <div className="space-y-2">
+      <div className="space-y-2 p-4">
         <Label htmlFor="playerImage">Image Link</Label>
         <Input
           id="playerImage"
@@ -88,8 +88,6 @@ export function AdcJogador({
             setNewPlayer((prev) => ({ ...prev, image: e.target.value }))
           }
         />
-      </div>
-      <div className="space-y-2">
         <Label htmlFor="playerName">Player Name</Label>
         <Input
           id="playerName"
@@ -100,8 +98,6 @@ export function AdcJogador({
           }
           required
         />
-      </div>
-      <div className="space-y-2">
         <Label htmlFor="playerTeam">Player Team ID</Label>
         <Input
           id="playerTeam"
@@ -116,8 +112,6 @@ export function AdcJogador({
           }
           required
         />
-      </div>
-      <div className="space-y-2">
         <Label htmlFor="playerPosition">Player Position</Label>
         <Input
           id="playerPosition"
@@ -132,7 +126,7 @@ export function AdcJogador({
           required
         />
       </div>
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button type="submit" className="w-80 " disabled={isLoading}>
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
