@@ -1,10 +1,9 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Sheet,
   SheetTrigger,
@@ -13,14 +12,9 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
-import { Loader2, Plus } from "lucide-react";
-import Image from "next/image";
+import { Plus } from "lucide-react";
 import { AdcJogador } from "./adc-time";
+import { TableTimes } from "./table-times"; // Importação do novo componente
 
 // A URL do seu back-end, configurada no .env.local
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -81,32 +75,7 @@ export default function TeamsPage({ teamsProps }: { teamsProps: Teams[] }) {
           </SheetContent>
         </Sheet>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {filteredTeams.map((team) => (
-          <HoverCard key={team.id}>
-            <HoverCardTrigger asChild>
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="aspect-square relative mb-2">
-                    <Image
-                      src={team.image || "/placeholder.svg"}
-                      alt={team.name}
-                      fill
-                      className="object-cover rounded-md"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </HoverCardTrigger>
-            <HoverCardContent>
-              <div className="space-y-2">
-                <h4 className="font-semibold">{team.name}</h4>
-              </div>
-            </HoverCardContent>
-          </HoverCard>
-        ))}
-      </div>
+      <TableTimes teams={filteredTeams} />
     </div>
   );
 }

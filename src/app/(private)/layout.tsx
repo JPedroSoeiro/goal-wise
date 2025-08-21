@@ -87,8 +87,9 @@ function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="px-4 py-2">
-          <h2 className="text-lg font-semibold">Aqui fica o titulo</h2>
+        <div className="flex items-center gap-2 px-4 py-2">
+          <h2 className="text-lg font-semibold">Goal Wise</h2>
+          <img src="/soccer2.png" alt="Image" className="size-12" />
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -115,7 +116,6 @@ function AppSidebar() {
           <AlertDialogTrigger asChild>
             <Button variant="ghost" className="w-full justify-start">
               {session.user?.name || session.user?.email || "Usuário"}{" "}
-              {/* Exibe o nome ou email do usuário logado */}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>

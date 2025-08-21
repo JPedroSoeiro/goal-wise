@@ -79,15 +79,6 @@ export function AdcJogador({
   return (
     <form onSubmit={handleAddTeam} className="space-y-4 mt-6">
       <div className="space-y-2 p-4">
-        <Label htmlFor="teamImage">Image Link</Label>
-        <Input
-          id="teamImage"
-          placeholder="Enter image URL"
-          value={newTeam.image}
-          onChange={(e) =>
-            setNewTeam((prev) => ({ ...prev, image: e.target.value }))
-          }
-        />
         <Label htmlFor="teamName">Team Name</Label>
         <Input
           id="teamName"
@@ -98,32 +89,14 @@ export function AdcJogador({
           }
           required
         />
-        <Label htmlFor="teamTeamId">Team ID</Label>
+        <Label htmlFor="teamImage">Image Link</Label>
         <Input
-          id="teamTeamId"
-          type="number"
-          placeholder="Enter team ID"
-          value={newTeam.teamId}
+          id="teamImage"
+          placeholder="Enter image URL"
+          value={newTeam.image}
           onChange={(e) =>
-            setNewTeam((prev) => ({
-              ...prev,
-              teamId: e.target.value,
-            }))
+            setNewTeam((prev) => ({ ...prev, image: e.target.value }))
           }
-          required
-        />
-        <Label htmlFor="teamPosition">Team Position</Label>
-        <Input
-          id="teamPosition"
-          placeholder="Enter team position"
-          value={newTeam.position}
-          onChange={(e) =>
-            setNewTeam((prev) => ({
-              ...prev,
-              position: e.target.value,
-            }))
-          }
-          required
         />
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
