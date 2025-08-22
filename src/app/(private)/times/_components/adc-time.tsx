@@ -13,18 +13,17 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 interface Team {
   id: string;
   name: string;
-  teamId: number;
-  position: string;
   image: string;
 }
 
-// O componente AdcJogador agora recebe a função onTeamAddedAction e o estado da Sheet
-export function AdcJogador({
-  onPlayerAddedAction,
+export function AdcTime({
+  onTeamAddedAction,
   setIsSheetOpenAction,
+  token,
 }: {
-  onPlayerAddedAction: (team: Team) => void;
-  setIsSheetOpenAction: (open: boolean) => void; // Renomeado para setIsSheetOpenAction
+  onTeamAddedAction: (team: Team) => void;
+  setIsSheetOpenAction: (open: boolean) => void;
+  token: string | undefined; // Adicionado token para autenticação
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
@@ -33,8 +32,6 @@ export function AdcJogador({
   } | null>(null);
   const [newTeam, setNewTeam] = useState({
     name: "",
-    teamId: "",
-    position: "",
     image: "",
   });
 
@@ -43,11 +40,18 @@ export function AdcJogador({
     setIsLoading(true);
     setMessage(null);
 
+    if (!token) {
+      setMessage({ type: "error", text: "Você não está autenticado." });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch(`${API_URL}/api/teams`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Enviando o token no cabeçalho
         },
         body: JSON.stringify(newTeam),
       });
@@ -58,12 +62,12 @@ export function AdcJogador({
       }
 
       const addedTeam: Team = await response.json();
-      onPlayerAddedAction(addedTeam); // Chama a função renomeada
+      onTeamAddedAction(addedTeam);
       setMessage({ type: "success", text: "Time adicionado com sucesso!" });
-      setNewTeam({ name: "", teamId: "", position: "", image: "" });
+      setNewTeam({ name: "", image: "" });
 
       setTimeout(() => {
-        setIsSheetOpenAction(false); // Chama a função renomeada para fechar a Sheet
+        setIsSheetOpenAction(false);
         setMessage(null);
       }, 1500);
     } catch (error: any) {
@@ -79,20 +83,20 @@ export function AdcJogador({
   return (
     <form onSubmit={handleAddTeam} className="space-y-4 mt-6">
       <div className="space-y-2 p-4">
-        <Label htmlFor="teamName">Team Name</Label>
+        <Label htmlFor="teamName">Nome do Time</Label>
         <Input
           id="teamName"
-          placeholder="Enter team name"
+          placeholder="Digite o nome do time"
           value={newTeam.name}
           onChange={(e) =>
             setNewTeam((prev) => ({ ...prev, name: e.target.value }))
           }
           required
         />
-        <Label htmlFor="teamImage">Image Link</Label>
+        <Label htmlFor="teamImage">URL do Escudo</Label>
         <Input
           id="teamImage"
-          placeholder="Enter image URL"
+          placeholder="Digite a URL do escudo"
           value={newTeam.image}
           onChange={(e) =>
             setNewTeam((prev) => ({ ...prev, image: e.target.value }))

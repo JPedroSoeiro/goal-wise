@@ -2,18 +2,26 @@ import { AuthOptions, Session, User } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-// A URL do seu back-end, configurada no .env.local
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// Declaração de tipo para estender a tipagem da sessão do NextAuth
 declare module "next-auth" {
+  interface User {
+    token?: string; // Adicionado token à interface User
+  }
   interface Session {
     user: {
-      id: string; // Adiciona a propriedade 'id'
+      id: string;
       name?: string | null;
       email?: string | null;
       image?: string | null;
     };
+    accessToken?: string;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    accessToken?: string;
   }
 }
 
@@ -30,13 +38,11 @@ export const authOptions: AuthOptions = {
           return null;
         }
 
-        // Esta chamada é direcionada para a sua API de back-end
         const response = await fetch(`${API_URL}/api/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          // Garante que o corpo da requisição contenha explicitamente email e password
           body: JSON.stringify({
             email: credentials.email,
             password: credentials.password,
@@ -46,7 +52,6 @@ export const authOptions: AuthOptions = {
         const user = await response.json();
 
         if (response.ok && user) {
-          // Retorna o objeto do usuário que será serializado no token JWT
           return user;
         }
 
@@ -64,6 +69,7 @@ export const authOptions: AuthOptions = {
         token.name = user.name;
         token.email = user.email;
         token.image = user.image;
+        token.accessToken = user.token;
       }
       return token;
     },
@@ -74,6 +80,7 @@ export const authOptions: AuthOptions = {
         session.user.name = token.name as string;
         session.user.email = token.email as string;
         session.user.image = token.image as string;
+        session.accessToken = token.accessToken;
       }
       return session;
     },

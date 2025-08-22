@@ -13,10 +13,10 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Plus } from "lucide-react";
-import { AdcJogador } from "./adc-time";
-import { TableTimes } from "./table-times"; // Importação do novo componente
+import { AdcTime } from "./adc-time";
+import { TableTimes } from "../_components/tabela-times";
+import { useSession } from "next-auth/react"; // Importando o hook de sessão
 
-// A URL do seu back-end, configurada no .env.local
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface Teams {
@@ -26,11 +26,11 @@ interface Teams {
 }
 
 export default function TeamsPage({ teamsProps }: { teamsProps: Teams[] }) {
+  const { data: session } = useSession(); // Acessando a sessão do usuário
   const [searchTerm, setSearchTerm] = useState("");
   const [teams, setTeams] = useState<Teams[]>(teamsProps);
-  const [isSheetOpen, setIsSheetOpen] = useState(false); // Estado para controlar a Sheet
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  // Callback para AdcJogador adicionar um novo team à lista
   const handleTeamAdded = (newTeam: Teams) => {
     setTeams((prev) => [...prev, newTeam]);
   };
@@ -68,9 +68,10 @@ export default function TeamsPage({ teamsProps }: { teamsProps: Teams[] }) {
                 sistema.
               </SheetDescription>
             </SheetHeader>
-            <AdcJogador
-              onPlayerAddedAction={handleTeamAdded}
+            <AdcTime
+              onTeamAddedAction={handleTeamAdded}
               setIsSheetOpenAction={setIsSheetOpen}
+              token={session?.user.id} // Passando o ID do usuário como token (precisa ser corrigido no backend)
             />
           </SheetContent>
         </Sheet>
