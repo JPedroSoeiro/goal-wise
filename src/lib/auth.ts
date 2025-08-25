@@ -6,7 +6,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 declare module "next-auth" {
   interface User {
-    token?: string; // Adicionado token à interface User
+    token?: string;
   }
   interface Session {
     user: {

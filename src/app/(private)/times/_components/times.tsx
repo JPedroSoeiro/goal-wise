@@ -14,25 +14,39 @@ import {
 } from "@/components/ui/sheet";
 import { Plus } from "lucide-react";
 import { AdcTime } from "./adc-time";
-import { TableTimes } from "../_components/tabela-times";
-import { useSession } from "next-auth/react"; // Importando o hook de sessão
+import { TableTimes } from "./tabela-times";
+import { useSession } from "next-auth/react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-interface Teams {
+interface Team {
   id: string;
   name: string;
   image: string;
 }
 
-export default function TeamsPage({ teamsProps }: { teamsProps: Teams[] }) {
-  const { data: session } = useSession(); // Acessando a sessão do usuário
+export default function TeamsPage({ teamsProps }: { teamsProps: Team[] }) {
+  const { data: session } = useSession();
   const [searchTerm, setSearchTerm] = useState("");
-  const [teams, setTeams] = useState<Teams[]>(teamsProps);
+  const [teams, setTeams] = useState<Team[]>(teamsProps);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
 
-  const handleTeamAdded = (newTeam: Teams) => {
-    setTeams((prev) => [...prev, newTeam]);
+  const handleTeamAction = (team: Team, isEdit: boolean) => {
+    if (isEdit) {
+      setTeams((prev) => prev.map((t) => (t.id === team.id ? team : t)));
+    } else {
+      setTeams((prev) => [...prev, team]);
+    }
+    setEditingTeam(null); // Reseta o estado de edição após a ação ser concluída
+    setIsSheetOpen(false); // Fecha o modal após a ação
+  };
+
+  const handleEditClick = (team: Team) => {
+    setEditingTeam(team);
+    setIsSheetOpen(true);
+  };
+
+  const handleTeamDeleted = (teamId: string) => {
+    setTeams((prev) => prev.filter((team) => team.id !== teamId));
   };
 
   const filteredTeams = teams.filter((team) =>
@@ -53,30 +67,43 @@ export default function TeamsPage({ teamsProps }: { teamsProps: Teams[] }) {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1"
         />
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <Sheet
+          open={isSheetOpen}
+          onOpenChange={setIsSheetOpen} // Apenas controla a abertura/fechamento do modal
+        >
           <SheetTrigger asChild>
-            <Button>
+            <Button onClick={() => setEditingTeam(null)}>
               <Plus className="mr-2 h-4 w-4" />
               Adicionar Time
             </Button>
           </SheetTrigger>
           <SheetContent>
             <SheetHeader>
-              <SheetTitle>Adicionar Novo Time</SheetTitle>
+              <SheetTitle>
+                {editingTeam ? "Editar Time" : "Adicionar Novo Time"}
+              </SheetTitle>
               <SheetDescription>
-                Digite os detalhes do time para adicionar um novo time ao seu
-                sistema.
+                {editingTeam
+                  ? "Altere os detalhes do time e salve."
+                  : "Digite os detalhes do time para adicionar um novo time ao seu sistema."}
               </SheetDescription>
             </SheetHeader>
             <AdcTime
-              onTeamAddedAction={handleTeamAdded}
+              onTeamAction={handleTeamAction}
               setIsSheetOpenAction={setIsSheetOpen}
-              token={session?.user.id} // Passando o ID do usuário como token (precisa ser corrigido no backend)
+              token={session?.accessToken} // ********
+              editingTeam={editingTeam}
             />
           </SheetContent>
         </Sheet>
       </div>
-      <TableTimes teams={filteredTeams} />
+      <TableTimes
+        teams={filteredTeams}
+        onTeamUpdatedAction={handleTeamAction}
+        onTeamDeletedAction={handleTeamDeleted}
+        onEditClickAction={handleEditClick}
+        token={session?.accessToken}
+      />
     </div>
   );
 }

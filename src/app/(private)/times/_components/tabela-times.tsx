@@ -18,15 +18,41 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { deleteTeam } from "@/services/times/timesService";
 
-interface Teams {
+interface Team {
+  // Corrigido de 'Teams' para 'Team'
   id: string;
   name: string;
   image: string;
 }
 
-export function TableTimes({ teams }: { teams: Teams[] }) {
+export function TableTimes({
+  teams,
+  onTeamUpdatedAction, // Renomeado para seguir a convenção
+  onTeamDeletedAction, // Renomeado para seguir a convenção
+  onEditClickAction, // Renomeado para seguir a convenção
+  token,
+}: {
+  teams: Team[]; // Corrigido de 'Teams[]' para 'Team[]'
+  onTeamUpdatedAction: (team: Team, isEdit: boolean) => void; // Ajustado para 2 argumentos
+  onTeamDeletedAction: (teamId: string) => void;
+  onEditClickAction: (team: Team) => void;
+  token: string | undefined;
+}) {
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [teamToDelete, setTeamToDelete] = React.useState<Team | null>(null); // Corrigido de 'Teams' para 'Team'
   const teamsPerPage = 5;
 
   const totalPages = Math.ceil(teams.length / teamsPerPage);
@@ -44,6 +70,21 @@ export function TableTimes({ teams }: { teams: Teams[] }) {
   const handlePreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!teamToDelete || !token) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteTeam(token, teamToDelete.id);
+      onTeamDeletedAction(teamToDelete.id); // Chamando a prop renomeada
+      setTeamToDelete(null);
+    } catch (error) {
+      console.error("Erro ao deletar time:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -80,8 +121,13 @@ export function TableTimes({ teams }: { teams: Teams[] }) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Editar</DropdownMenuItem>
-                    <DropdownMenuItem>Deletar</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => onEditClickAction(team)}>
+                      Editar
+                    </DropdownMenuItem>{" "}
+                    {/* Chamando a prop renomeada */}
+                    <DropdownMenuItem onSelect={() => setTeamToDelete(team)}>
+                      Deletar
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
@@ -89,6 +135,7 @@ export function TableTimes({ teams }: { teams: Teams[] }) {
           ))}
         </TableBody>
       </Table>
+
       <div className="flex justify-end space-x-2">
         <Button onClick={handlePreviousPage} disabled={currentPage === 1}>
           Anterior
@@ -97,6 +144,33 @@ export function TableTimes({ teams }: { teams: Teams[] }) {
           Próximo
         </Button>
       </div>
+
+      <AlertDialog
+        open={!!teamToDelete}
+        onOpenChange={(open) => !open && setTeamToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmação de Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja deletar o time **{teamToDelete?.name}**?
+              Essa ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? "Deletando..." : "Deletar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

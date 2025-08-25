@@ -18,10 +18,37 @@ export const fetchTeams = async (token: string) => {
   }
 };
 
+export const createTeam = async (
+  token: string,
+  newTeam: { name: string; image: string }
+) => {
+  try {
+    const response = await fetch(`${API_URL}/api/teams`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(newTeam),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Falha ao adicionar time.");
+    }
+
+    const addedTeam = await response.json();
+    return addedTeam;
+  } catch (error) {
+    console.error("Erro ao criar time:", error);
+    throw error;
+  }
+};
+
 export const updateTeam = async (
   token: string,
   id: string,
-  updatedTeam: any
+  updatedTeam: { name: string; image: string }
 ) => {
   try {
     const response = await fetch(`${API_URL}/api/teams/${id}`, {
@@ -33,7 +60,8 @@ export const updateTeam = async (
       body: JSON.stringify(updatedTeam),
     });
     if (!response.ok) {
-      throw new Error("Falha ao atualizar o time");
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Falha ao atualizar o time");
     }
     const data = await response.json();
     return data;
@@ -52,7 +80,8 @@ export const deleteTeam = async (token: string, id: string) => {
       },
     });
     if (!response.ok) {
-      throw new Error("Falha ao deletar o time");
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Falha ao deletar o time");
     }
     return response.ok;
   } catch (error) {

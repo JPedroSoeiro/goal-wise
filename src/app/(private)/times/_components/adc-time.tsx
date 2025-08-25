@@ -1,14 +1,12 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-
-// A URL do seu back-end, configurada no .env.local
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { createTeam, updateTeam } from "@/services/times/timesService";
 
 interface Team {
   id: string;
@@ -17,25 +15,35 @@ interface Team {
 }
 
 export function AdcTime({
-  onTeamAddedAction,
+  onTeamAction,
   setIsSheetOpenAction,
   token,
+  editingTeam,
 }: {
-  onTeamAddedAction: (team: Team) => void;
+  onTeamAction: (team: Team, isEdit: boolean) => void;
   setIsSheetOpenAction: (open: boolean) => void;
-  token: string | undefined; // Adicionado token para autenticação
+  token: string | undefined;
+  editingTeam?: Team | null;
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
-  const [newTeam, setNewTeam] = useState({
+  const [teamData, setTeamData] = useState({
     name: "",
     image: "",
   });
 
-  const handleAddTeam = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (editingTeam) {
+      setTeamData({ name: editingTeam.name, image: editingTeam.image });
+    } else {
+      setTeamData({ name: "", image: "" });
+    }
+  }, [editingTeam]);
+
+  const handleAction = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage(null);
@@ -47,24 +55,22 @@ export function AdcTime({
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/teams`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Enviando o token no cabeçalho
-        },
-        body: JSON.stringify(newTeam),
-      });
+      let result;
+      let actionType: "Adicionado" | "Atualizado";
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Falha ao adicionar time.");
+      if (editingTeam) {
+        console.log("Tentando atualizar time com ID:", editingTeam.id);
+        console.log("Dados do time:", teamData);
+        result = await updateTeam(token, editingTeam.id, teamData);
+        actionType = "Atualizado";
+      } else {
+        console.log("Tentando criar novo time com dados:", teamData);
+        result = await createTeam(token, teamData);
+        actionType = "Adicionado";
       }
 
-      const addedTeam: Team = await response.json();
-      onTeamAddedAction(addedTeam);
-      setMessage({ type: "success", text: "Time adicionado com sucesso!" });
-      setNewTeam({ name: "", image: "" });
+      onTeamAction(result, !!editingTeam);
+      setMessage({ type: "success", text: `Time ${actionType} com sucesso!` });
 
       setTimeout(() => {
         setIsSheetOpenAction(false);
@@ -80,16 +86,20 @@ export function AdcTime({
     }
   };
 
+  const formTitle = editingTeam ? "Editar Time" : "Adicionar Novo Time";
+  const buttonText = editingTeam ? "Salvar Alterações" : "Adicionar Time";
+  const loadingText = editingTeam ? "Salvando..." : "Adicionando Time...";
+
   return (
-    <form onSubmit={handleAddTeam} className="space-y-4 mt-6">
+    <form onSubmit={handleAction} className="space-y-4 mt-6">
       <div className="space-y-2 p-4">
         <Label htmlFor="teamName">Nome do Time</Label>
         <Input
           id="teamName"
           placeholder="Digite o nome do time"
-          value={newTeam.name}
+          value={teamData.name}
           onChange={(e) =>
-            setNewTeam((prev) => ({ ...prev, name: e.target.value }))
+            setTeamData((prev) => ({ ...prev, name: e.target.value }))
           }
           required
         />
@@ -97,9 +107,9 @@ export function AdcTime({
         <Input
           id="teamImage"
           placeholder="Digite a URL do escudo"
-          value={newTeam.image}
+          value={teamData.image}
           onChange={(e) =>
-            setNewTeam((prev) => ({ ...prev, image: e.target.value }))
+            setTeamData((prev) => ({ ...prev, image: e.target.value }))
           }
         />
       </div>
@@ -107,10 +117,10 @@ export function AdcTime({
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Adicionando Time...
+            {loadingText}
           </>
         ) : (
-          "Adicionar Time"
+          buttonText
         )}
       </Button>
       {message && (
