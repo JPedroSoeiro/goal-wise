@@ -5,15 +5,16 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Sheet,
-  SheetTrigger,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { AdcTime } from "./adc-time";
+import { EditTime } from "./edit-time";
 import { TableTimes } from "./tabela-times";
 import { useSession } from "next-auth/react";
 
@@ -27,7 +28,7 @@ export default function TeamsPage({ teamsProps }: { teamsProps: Team[] }) {
   const { data: session } = useSession();
   const [searchTerm, setSearchTerm] = useState("");
   const [teams, setTeams] = useState<Team[]>(teamsProps);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
 
   const handleTeamAction = (team: Team, isEdit: boolean) => {
@@ -36,13 +37,13 @@ export default function TeamsPage({ teamsProps }: { teamsProps: Team[] }) {
     } else {
       setTeams((prev) => [...prev, team]);
     }
-    setEditingTeam(null); // Reseta o estado de edição após a ação ser concluída
-    setIsSheetOpen(false); // Fecha o modal após a ação
+    setEditingTeam(null);
+    setIsDialogOpen(false);
   };
 
   const handleEditClick = (team: Team) => {
     setEditingTeam(team);
-    setIsSheetOpen(true);
+    setIsDialogOpen(true);
   };
 
   const handleTeamDeleted = (teamId: string) => {
@@ -67,36 +68,43 @@ export default function TeamsPage({ teamsProps }: { teamsProps: Team[] }) {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1"
         />
-        <Sheet
-          open={isSheetOpen}
-          onOpenChange={setIsSheetOpen} // Apenas controla a abertura/fechamento do modal
-        >
-          <SheetTrigger asChild>
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
             <Button onClick={() => setEditingTeam(null)}>
               <Plus className="mr-2 h-4 w-4" />
               Adicionar Time
             </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
                 {editingTeam ? "Editar Time" : "Adicionar Novo Time"}
-              </SheetTitle>
-              <SheetDescription>
+              </DialogTitle>
+              <DialogDescription>
                 {editingTeam
                   ? "Altere os detalhes do time e salve."
                   : "Digite os detalhes do time para adicionar um novo time ao seu sistema."}
-              </SheetDescription>
-            </SheetHeader>
-            <AdcTime
-              onTeamAction={handleTeamAction}
-              setIsSheetOpenAction={setIsSheetOpen}
-              token={session?.accessToken} // ********
-              editingTeam={editingTeam}
-            />
-          </SheetContent>
-        </Sheet>
+              </DialogDescription>
+            </DialogHeader>
+            {editingTeam ? (
+              <EditTime
+                onTeamAction={handleTeamAction}
+                onCloseAction={() => setIsDialogOpen(false)}
+                token={session?.accessToken}
+                editingTeam={editingTeam}
+              />
+            ) : (
+              <AdcTime
+                onTeamAction={handleTeamAction}
+                onCloseAction={() => setIsDialogOpen(false)}
+                token={session?.accessToken}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
+
       <TableTimes
         teams={filteredTeams}
         onTeamUpdatedAction={handleTeamAction}

@@ -1,12 +1,12 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { createTeam } from "@/services/times/timesService";
+import { updateTeam } from "@/services/times/timesService";
 
 interface Team {
   id: string;
@@ -14,14 +14,16 @@ interface Team {
   image: string;
 }
 
-export function AdcTime({
+export function EditTime({
   onTeamAction,
   onCloseAction,
   token,
+  editingTeam,
 }: {
   onTeamAction: (team: Team, isEdit: boolean) => void;
   onCloseAction: () => void;
   token: string | undefined;
+  editingTeam: Team;
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
@@ -32,6 +34,10 @@ export function AdcTime({
     name: "",
     image: "",
   });
+
+  useEffect(() => {
+    setTeamData({ name: editingTeam.name, image: editingTeam.image });
+  }, [editingTeam]);
 
   const handleAction = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,11 +51,11 @@ export function AdcTime({
     }
 
     try {
-      const result = await createTeam(token, teamData); // Passando o token corretamente
-      onTeamAction(result, false);
+      const result = await updateTeam(token, editingTeam.id, teamData); // Passando o token corretamente
+      onTeamAction(result, true);
       setMessage({
         type: "success",
-        text: `Time adicionado com sucesso!`,
+        text: `Time atualizado com sucesso!`,
       });
       setTimeout(() => {
         onCloseAction();
@@ -92,10 +98,10 @@ export function AdcTime({
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Adicionando Time...
+            Salvando...
           </>
         ) : (
-          "Adicionar Time"
+          "Salvar Alterações"
         )}
       </Button>
       {message && (

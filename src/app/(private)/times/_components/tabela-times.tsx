@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { MoreHorizontal } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -12,12 +12,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +25,6 @@ import {
 import { deleteTeam } from "@/services/times/timesService";
 
 interface Team {
-  // Corrigido de 'Teams' para 'Team'
   id: string;
   name: string;
   image: string;
@@ -39,20 +32,20 @@ interface Team {
 
 export function TableTimes({
   teams,
-  onTeamUpdatedAction, // Renomeado para seguir a convenção
-  onTeamDeletedAction, // Renomeado para seguir a convenção
-  onEditClickAction, // Renomeado para seguir a convenção
+  onTeamUpdatedAction,
+  onTeamDeletedAction,
+  onEditClickAction,
   token,
 }: {
-  teams: Team[]; // Corrigido de 'Teams[]' para 'Team[]'
-  onTeamUpdatedAction: (team: Team, isEdit: boolean) => void; // Ajustado para 2 argumentos
+  teams: Team[];
+  onTeamUpdatedAction: (team: Team, isEdit: boolean) => void;
   onTeamDeletedAction: (teamId: string) => void;
   onEditClickAction: (team: Team) => void;
   token: string | undefined;
 }) {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isDeleting, setIsDeleting] = React.useState(false);
-  const [teamToDelete, setTeamToDelete] = React.useState<Team | null>(null); // Corrigido de 'Teams' para 'Team'
+  const [teamToDelete, setTeamToDelete] = React.useState<Team | null>(null);
   const teamsPerPage = 5;
 
   const totalPages = Math.ceil(teams.length / teamsPerPage);
@@ -79,7 +72,7 @@ export function TableTimes({
     setIsDeleting(true);
     try {
       await deleteTeam(token, teamToDelete.id);
-      onTeamDeletedAction(teamToDelete.id); // Chamando a prop renomeada
+      onTeamDeletedAction(teamToDelete.id);
       setTeamToDelete(null);
     } catch (error) {
       console.error("Erro ao deletar time:", error);
@@ -95,7 +88,7 @@ export function TableTimes({
           <TableRow>
             <TableHead>Nome do Time</TableHead>
             <TableHead>Escudo</TableHead>
-            <TableHead className="w-[50px]">Ações</TableHead>
+            <TableHead className="w-[100px]">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -112,24 +105,21 @@ export function TableTimes({
                   />
                 </div>
               </TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="size-8 p-0">
-                      <span className="sr-only">Abrir menu</span>
-                      <MoreHorizontal className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={() => onEditClickAction(team)}>
-                      Editar
-                    </DropdownMenuItem>{" "}
-                    {/* Chamando a prop renomeada */}
-                    <DropdownMenuItem onSelect={() => setTeamToDelete(team)}>
-                      Deletar
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <TableCell className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => onEditClickAction(team)}
+                >
+                  <Pencil className="size-4" />
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => setTeamToDelete(team)}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
               </TableCell>
             </TableRow>
           ))}

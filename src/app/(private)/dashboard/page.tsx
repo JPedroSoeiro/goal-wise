@@ -20,7 +20,7 @@ import { useSession } from "next-auth/react";
 export default function Dashboard() {
   const stats = [
     { category: "Times", count: 12 },
-    { category: "Liga", count: 3 },
+    { category: "Jogadores", count: 3 },
   ];
 
   const { data: session } = useSession();
