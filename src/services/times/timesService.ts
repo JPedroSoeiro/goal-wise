@@ -1,14 +1,16 @@
 "use server";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-import { revalidatePath } from "next/cache"; // Next 13+ App Router
+import { revalidatePath } from "next/cache";
 
-export const fetchTeams = async (token: string) => {
+const token =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0ZUBnbWFpbC5jb20iLCJuYW1lIjoidGVzdGUiLCJpYXQiOjE3NTY0NzU3MDUsImV4cCI6MTc1NjQ3OTMwNX0.wTI059Gxf_Mjl8CknotvJF-zdAYAhAq3GbeAlD0KtDY";
+
+export const fetchTeams = async () => {
   try {
     const response = await fetch(`${API_URL}/api/teams`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      cache: "no-store",
     });
     if (!response.ok) {
       throw new Error("Falha ao buscar teams");
@@ -22,8 +24,6 @@ export const fetchTeams = async (token: string) => {
 };
 
 export const createTeam = async (newTeam: { name: string; image: string }) => {
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJoZW5kcmlvX29AbGl2ZS5jb20iLCJuYW1lIjoiUGVkcm8gaCIsImlhdCI6MTc1NjE1MTcxMywiZXhwIjoxNzU2MTU1MzEzfQ.g6UO7urMfBRWE1OU1juRGe9WE4jDRxjo21HtZW5WLL0";
   try {
     const response = await fetch(`${API_URL}/api/teams`, {
       method: "POST",
@@ -40,6 +40,7 @@ export const createTeam = async (newTeam: { name: string; image: string }) => {
     }
 
     const addedTeam = await response.json();
+    revalidatePath("/times");
     return addedTeam;
   } catch (error) {
     console.error("Erro ao criar time:", error);
@@ -51,9 +52,6 @@ export const updateTeam = async (
   id: string,
   updatedTeam: { name: string; image: string }
 ) => {
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJoZW5kcmlvX29AbGl2ZS5jb20iLCJuYW1lIjoiUGVkcm8gaCIsImlhdCI6MTc1NjE1MTcxMywiZXhwIjoxNzU2MTU1MzEzfQ.g6UO7urMfBRWE1OU1juRGe9WE4jDRxjo21HtZW5WLL0";
-
   try {
     const response = await fetch(`${API_URL}/api/teams/${id}`, {
       method: "PUT",
@@ -68,10 +66,9 @@ export const updateTeam = async (
       const errorData = await response.json();
       throw new Error(errorData.error || "Falha ao atualizar o time");
     }
-    // Revalida a rota que lista os times
-    revalidatePath("/times"); // coloque o caminho da página que precisa atualizar
-    const data = await response.json();
 
+    const data = await response.json();
+    revalidatePath("/times");
     return data;
   } catch (error) {
     console.error("Erro ao atualizar o time:", error);
@@ -79,7 +76,7 @@ export const updateTeam = async (
   }
 };
 
-export const deleteTeam = async (token: string, id: string) => {
+export const deleteTeam = async (id: string) => {
   try {
     const response = await fetch(`${API_URL}/api/teams/${id}`, {
       method: "DELETE",
@@ -91,6 +88,7 @@ export const deleteTeam = async (token: string, id: string) => {
       const errorData = await response.json();
       throw new Error(errorData.error || "Falha ao deletar o time");
     }
+    revalidatePath("/times"); // Adicione esta linha
     return response.ok;
   } catch (error) {
     console.error("Erro ao deletar o time:", error);

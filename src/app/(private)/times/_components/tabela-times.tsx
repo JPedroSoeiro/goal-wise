@@ -46,7 +46,7 @@ export function TableTimes({
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [teamToDelete, setTeamToDelete] = React.useState<Team | null>(null);
-  const teamsPerPage = 5;
+  const teamsPerPage = 4;
 
   const totalPages = Math.ceil(teams.length / teamsPerPage);
   const currentTeams = teams.slice(
@@ -71,7 +71,7 @@ export function TableTimes({
 
     setIsDeleting(true);
     try {
-      await deleteTeam(token, teamToDelete.id);
+      await deleteTeam(teamToDelete.id);
       onTeamDeletedAction(teamToDelete.id);
       setTeamToDelete(null);
     } catch (error) {
@@ -96,14 +96,15 @@ export function TableTimes({
             <TableRow key={team.id}>
               <TableCell className="font-medium">{team.name}</TableCell>
               <TableCell>
-                <div className="aspect-square relative size-10">
+                {/* <div className="aspect-square relative size-10">
                   <Image
-                    src={team.image || "/placeholder.svg"}
+                    src={team.image}
+                    width={50}
+                    height={50}
                     alt={team.name}
-                    fill
                     className="object-contain rounded-md"
                   />
-                </div>
+                </div> */}
               </TableCell>
               <TableCell className="flex space-x-2">
                 <Button

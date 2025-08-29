@@ -51,7 +51,7 @@ export function EditTime({
     }
 
     try {
-      const result = await updateTeam(token, editingTeam.id, teamData); // Passando o token corretamente
+      const result = await updateTeam(editingTeam.id, teamData);
       onTeamAction(result, true);
       setMessage({
         type: "success",

@@ -45,7 +45,7 @@ export function AdcTime({
     }
 
     try {
-      const result = await createTeam(token, teamData); // Passando o token corretamente
+      const result = await createTeam(teamData);
       onTeamAction(result, false);
       setMessage({
         type: "success",
