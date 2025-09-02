@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { createTeam } from "@/services/times/timesService";
+import { createTeamAction } from "../actions";
 
 interface Team {
   id: string;
@@ -14,15 +14,7 @@ interface Team {
   image: string;
 }
 
-export function AdcTime({
-  onTeamAction,
-  onCloseAction,
-  token,
-}: {
-  onTeamAction: (team: Team, isEdit: boolean) => void;
-  onCloseAction: () => void;
-  token: string | undefined;
-}) {
+export function AdcTime({ onCloseAction }: { onCloseAction: () => void }) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -38,15 +30,8 @@ export function AdcTime({
     setIsLoading(true);
     setMessage(null);
 
-    if (!token) {
-      setMessage({ type: "error", text: "Você não está autenticado." });
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      const result = await createTeam(teamData);
-      onTeamAction(result, false);
+      await createTeamAction(teamData);
       setMessage({
         type: "success",
         text: `Time adicionado com sucesso!`,

@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { deleteTeam } from "@/services/times/timesService";
+import { deleteTeamAction } from "../actions";
 
 interface Team {
   id: string;
@@ -32,16 +32,10 @@ interface Team {
 
 export function TableTimes({
   teams,
-  onTeamUpdatedAction,
-  onTeamDeletedAction,
   onEditClickAction,
-  token,
 }: {
   teams: Team[];
-  onTeamUpdatedAction: (team: Team, isEdit: boolean) => void;
-  onTeamDeletedAction: (teamId: string) => void;
   onEditClickAction: (team: Team) => void;
-  token: string | undefined;
 }) {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isDeleting, setIsDeleting] = React.useState(false);
@@ -67,12 +61,11 @@ export function TableTimes({
   };
 
   const handleDelete = async () => {
-    if (!teamToDelete || !token) return;
+    if (!teamToDelete) return;
 
     setIsDeleting(true);
     try {
-      await deleteTeam(teamToDelete.id);
-      onTeamDeletedAction(teamToDelete.id);
+      await deleteTeamAction(teamToDelete.id);
       setTeamToDelete(null);
     } catch (error) {
       console.error("Erro ao deletar time:", error);
@@ -96,15 +89,15 @@ export function TableTimes({
             <TableRow key={team.id}>
               <TableCell className="font-medium">{team.name}</TableCell>
               <TableCell>
-                {/* <div className="aspect-square relative size-10">
+                <div className="aspect-square relative size-8">
                   <Image
-                    src={team.image}
+                    src={team.image || "/nao-ha-fotos.png"}
                     width={50}
                     height={50}
                     alt={team.name}
                     className="object-contain rounded-md"
                   />
-                </div> */}
+                </div>
               </TableCell>
               <TableCell className="flex space-x-2">
                 <Button

@@ -1,9 +1,14 @@
 "use server";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0ZUBnbWFpbC5jb20iLCJuYW1lIjoidGVzdGUiLCJpYXQiOjE3NTY0NzU3MDUsImV4cCI6MTc1NjQ3OTMwNX0.wTI059Gxf_Mjl8CknotvJF-zdAYAhAq3GbeAlD0KtDY";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0ZUBnbWFpbC5jb20iLCJuYW1lIjoidGVzdGUiLCJpYXQiOjE3NTY4MzU0NjYsImV4cCI6MTc1NjgzOTA2Nn0.f5fFKNIOgdbpFSR6Hl5h_E0olXcmeSje0gYn2PJtdkg";
+
+interface TeamData {
+  name: string;
+  image: string;
+}
 
 export const fetchTeams = async () => {
   try {
@@ -11,6 +16,7 @@ export const fetchTeams = async () => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      next: { tags: ["/times"] },
     });
     if (!response.ok) {
       throw new Error("Falha ao buscar teams");
@@ -23,7 +29,7 @@ export const fetchTeams = async () => {
   }
 };
 
-export const createTeam = async (newTeam: { name: string; image: string }) => {
+export const createTeam = async (newTeam: TeamData) => {
   try {
     const response = await fetch(`${API_URL}/api/teams`, {
       method: "POST",
@@ -40,7 +46,6 @@ export const createTeam = async (newTeam: { name: string; image: string }) => {
     }
 
     const addedTeam = await response.json();
-    revalidatePath("/times");
     return addedTeam;
   } catch (error) {
     console.error("Erro ao criar time:", error);
@@ -48,10 +53,7 @@ export const createTeam = async (newTeam: { name: string; image: string }) => {
   }
 };
 
-export const updateTeam = async (
-  id: string,
-  updatedTeam: { name: string; image: string }
-) => {
+export async function updateTeam(id: string, updatedTeam: Partial<TeamData>) {
   try {
     const response = await fetch(`${API_URL}/api/teams/${id}`, {
       method: "PUT",
@@ -66,15 +68,12 @@ export const updateTeam = async (
       const errorData = await response.json();
       throw new Error(errorData.error || "Falha ao atualizar o time");
     }
-
-    const data = await response.json();
-    revalidatePath("/times");
-    return data;
+    return response.json();
   } catch (error) {
     console.error("Erro ao atualizar o time:", error);
     throw error;
   }
-};
+}
 
 export const deleteTeam = async (id: string) => {
   try {
@@ -88,7 +87,6 @@ export const deleteTeam = async (id: string) => {
       const errorData = await response.json();
       throw new Error(errorData.error || "Falha ao deletar o time");
     }
-    revalidatePath("/times"); // Adicione esta linha
     return response.ok;
   } catch (error) {
     console.error("Erro ao deletar o time:", error);

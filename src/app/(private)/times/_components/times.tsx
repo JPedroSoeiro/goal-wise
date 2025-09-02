@@ -16,7 +16,6 @@ import { Plus } from "lucide-react";
 import { AdcTime } from "./adc-time";
 import { EditTime } from "./edit-time";
 import { TableTimes } from "./tabela-times";
-import { useSession } from "next-auth/react";
 
 interface Team {
   id: string;
@@ -25,32 +24,16 @@ interface Team {
 }
 
 export default function TeamsPage({ teamsProps }: { teamsProps: Team[] }) {
-  const { data: session } = useSession();
   const [searchTerm, setSearchTerm] = useState("");
-  const [teams, setTeams] = useState<Team[]>(teamsProps);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
-
-  const handleTeamAction = (team: Team, isEdit: boolean) => {
-    if (isEdit) {
-      setTeams((prev) => prev.map((t) => (t.id === team.id ? team : t)));
-    } else {
-      setTeams((prev) => [...prev, team]);
-    }
-    setEditingTeam(null);
-    setIsDialogOpen(false);
-  };
 
   const handleEditClick = (team: Team) => {
     setEditingTeam(team);
     setIsDialogOpen(true);
   };
 
-  const handleTeamDeleted = (teamId: string) => {
-    setTeams((prev) => prev.filter((team) => team.id !== teamId));
-  };
-
-  const filteredTeams = teams.filter((team) =>
+  const filteredTeams = teamsProps.filter((team) =>
     team?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -89,29 +72,17 @@ export default function TeamsPage({ teamsProps }: { teamsProps: Team[] }) {
             </DialogHeader>
             {editingTeam ? (
               <EditTime
-                onTeamAction={handleTeamAction}
                 onCloseAction={() => setIsDialogOpen(false)}
-                token={session?.accessToken}
                 editingTeam={editingTeam}
               />
             ) : (
-              <AdcTime
-                onTeamAction={handleTeamAction}
-                onCloseAction={() => setIsDialogOpen(false)}
-                token={session?.accessToken}
-              />
+              <AdcTime onCloseAction={() => setIsDialogOpen(false)} />
             )}
           </DialogContent>
         </Dialog>
       </div>
 
-      <TableTimes
-        teams={filteredTeams}
-        onTeamUpdatedAction={handleTeamAction}
-        onTeamDeletedAction={handleTeamDeleted}
-        onEditClickAction={handleEditClick}
-        token={session?.accessToken}
-      />
+      <TableTimes teams={filteredTeams} onEditClickAction={handleEditClick} />
     </div>
   );
 }

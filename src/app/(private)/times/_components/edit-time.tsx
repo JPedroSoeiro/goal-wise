@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { updateTeam } from "@/services/times/timesService";
+import { updateTeamAction } from "../actions";
 
 interface Team {
   id: string;
@@ -15,14 +15,10 @@ interface Team {
 }
 
 export function EditTime({
-  onTeamAction,
   onCloseAction,
-  token,
   editingTeam,
 }: {
-  onTeamAction: (team: Team, isEdit: boolean) => void;
   onCloseAction: () => void;
-  token: string | undefined;
   editingTeam: Team;
 }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -44,15 +40,8 @@ export function EditTime({
     setIsLoading(true);
     setMessage(null);
 
-    if (!token) {
-      setMessage({ type: "error", text: "Você não está autenticado." });
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      const result = await updateTeam(editingTeam.id, teamData);
-      onTeamAction(result, true);
+      await updateTeamAction(editingTeam.id, teamData);
       setMessage({
         type: "success",
         text: `Time atualizado com sucesso!`,
