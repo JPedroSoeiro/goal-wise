@@ -33,9 +33,11 @@ interface Team {
 export function TableTimes({
   teams,
   onEditClickAction,
+  onTeamClickAction,
 }: {
   teams: Team[];
   onEditClickAction: (team: Team) => void;
+  onTeamClickAction: (team: Team) => void;
 }) {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isDeleting, setIsDeleting] = React.useState(false);
@@ -86,7 +88,11 @@ export function TableTimes({
         </TableHeader>
         <TableBody>
           {currentTeams.map((team) => (
-            <TableRow key={team.id}>
+            <TableRow
+              key={team.id}
+              onClick={() => onTeamClickAction(team)}
+              className="cursor-pointer"
+            >
               <TableCell className="font-medium">{team.name}</TableCell>
               <TableCell>
                 <div className="aspect-square relative size-8">
@@ -103,14 +109,20 @@ export function TableTimes({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onEditClickAction(team)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditClickAction(team);
+                  }}
                 >
                   <Pencil className="size-4" />
                 </Button>
                 <Button
                   variant="destructive"
                   size="icon"
-                  onClick={() => setTeamToDelete(team)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setTeamToDelete(team);
+                  }}
                 >
                   <Trash2 className="size-4" />
                 </Button>

@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createPlayerAction } from "../actions";
+import { updatePlayerAction } from "../actions";
 import { fetchTeams } from "@/services/times/timesService";
 import { POSICOES } from "./posicoes";
 
@@ -23,7 +23,21 @@ interface Team {
   image: string;
 }
 
-export function AdcJogador({ onCloseAction }: { onCloseAction: () => void }) {
+interface Player {
+  id: string;
+  name: string;
+  teamId: string;
+  position: string;
+  image: string;
+}
+
+export function EditJogador({
+  onCloseAction,
+  editingPlayer,
+}: {
+  onCloseAction: () => void;
+  editingPlayer: Player;
+}) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -38,20 +52,23 @@ export function AdcJogador({ onCloseAction }: { onCloseAction: () => void }) {
   });
 
   useEffect(() => {
+    setPlayerData({
+      name: editingPlayer.name,
+      teamId: editingPlayer.teamId,
+      position: editingPlayer.position,
+      image: editingPlayer.image,
+    });
+
     const loadTeams = async () => {
       try {
         const allTeams = await fetchTeams();
         setTeams(allTeams);
       } catch (error) {
         console.error("Erro ao carregar times:", error);
-        setMessage({
-          type: "error",
-          text: "Falha ao carregar a lista de times.",
-        });
       }
     };
     loadTeams();
-  }, []);
+  }, [editingPlayer]);
 
   const handleAction = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,10 +76,10 @@ export function AdcJogador({ onCloseAction }: { onCloseAction: () => void }) {
     setMessage(null);
 
     try {
-      await createPlayerAction(playerData);
+      await updatePlayerAction(editingPlayer.id, playerData);
       setMessage({
         type: "success",
-        text: `Jogador adicionado com sucesso!`,
+        text: `Jogador atualizado com sucesso!`,
       });
       setTimeout(() => {
         onCloseAction();
@@ -93,6 +110,7 @@ export function AdcJogador({ onCloseAction }: { onCloseAction: () => void }) {
         />
         <Label htmlFor="playerTeam">Time</Label>
         <Select
+          value={playerData.teamId}
           onValueChange={(value: string) =>
             setPlayerData((prev) => ({ ...prev, teamId: value }))
           }
@@ -110,6 +128,7 @@ export function AdcJogador({ onCloseAction }: { onCloseAction: () => void }) {
         </Select>
         <Label htmlFor="playerPosition">Posição</Label>
         <Select
+          value={playerData.position}
           onValueChange={(value: string) =>
             setPlayerData((prev) => ({ ...prev, position: value }))
           }
@@ -139,10 +158,10 @@ export function AdcJogador({ onCloseAction }: { onCloseAction: () => void }) {
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Adicionando Jogador...
+            Salvando...
           </>
         ) : (
-          "Adicionar Jogador"
+          "Salvar Alterações"
         )}
       </Button>
       {message && (

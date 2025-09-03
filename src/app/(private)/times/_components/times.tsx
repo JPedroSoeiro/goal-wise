@@ -16,6 +16,7 @@ import { Plus } from "lucide-react";
 import { AdcTime } from "./adc-time";
 import { EditTime } from "./edit-time";
 import { TableTimes } from "./tabela-times";
+import { ModalJogadoresDoTime } from "./modal-jogadores-do-time";
 
 interface Team {
   id: string;
@@ -23,14 +24,35 @@ interface Team {
   image: string;
 }
 
-export default function TeamsPage({ teamsProps }: { teamsProps: Team[] }) {
+interface Player {
+  id: string;
+  name: string;
+  teamId: string;
+  position: string;
+  image: string;
+}
+
+export default function TeamsPage({
+  teamsProps,
+  playersProps,
+}: {
+  teamsProps: Team[];
+  playersProps: Player[];
+}) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPlayersModalOpen, setIsPlayersModalOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
 
   const handleEditClick = (team: Team) => {
     setEditingTeam(team);
     setIsDialogOpen(true);
+  };
+
+  const handleTeamClick = (team: Team) => {
+    setSelectedTeam(team);
+    setIsPlayersModalOpen(true);
   };
 
   const filteredTeams = teamsProps.filter((team) =>
@@ -82,7 +104,18 @@ export default function TeamsPage({ teamsProps }: { teamsProps: Team[] }) {
         </Dialog>
       </div>
 
-      <TableTimes teams={filteredTeams} onEditClickAction={handleEditClick} />
+      <TableTimes
+        teams={filteredTeams}
+        onEditClickAction={handleEditClick}
+        onTeamClickAction={handleTeamClick}
+      />
+
+      <ModalJogadoresDoTime
+        isOpen={isPlayersModalOpen}
+        onCloseAction={() => setIsPlayersModalOpen(false)}
+        team={selectedTeam}
+        allPlayers={playersProps}
+      />
     </div>
   );
 }

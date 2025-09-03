@@ -1,9 +1,8 @@
 "use server";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-import { revalidateTag } from "next/cache";
 
 const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0ZUBnbWFpbC5jb20iLCJuYW1lIjoidGVzdGUiLCJpYXQiOjE3NTY4MzU0NjYsImV4cCI6MTc1NjgzOTA2Nn0.f5fFKNIOgdbpFSR6Hl5h_E0olXcmeSje0gYn2PJtdkg";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0ZUBnbWFpbC5jb20iLCJuYW1lIjoidGVzdGUiLCJpYXQiOjE3NTY5MjMxMzUsImV4cCI6MTc1NjkyNjczNX0.M1mlPXIfExv8hTVyX8OqSvtGneqYtqoRNn9AsTe_b-I";
 
 interface TeamData {
   name: string;
