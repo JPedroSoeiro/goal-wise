@@ -22,6 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useSession } from "next-auth/react";
 import { deleteTeamAction } from "../actions";
 
 interface Team {
@@ -39,6 +40,7 @@ export function TableTimes({
   onEditClickAction: (team: Team) => void;
   onTeamClickAction: (team: Team) => void;
 }) {
+  const { data: session } = useSession();
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [teamToDelete, setTeamToDelete] = React.useState<Team | null>(null);
@@ -63,11 +65,11 @@ export function TableTimes({
   };
 
   const handleDelete = async () => {
-    if (!teamToDelete) return;
+    if (!teamToDelete || !session?.accessToken) return;
 
     setIsDeleting(true);
     try {
-      await deleteTeamAction(teamToDelete.id);
+      await deleteTeamAction(teamToDelete.id); // Removido o token daqui
       setTeamToDelete(null);
     } catch (error) {
       console.error("Erro ao deletar time:", error);

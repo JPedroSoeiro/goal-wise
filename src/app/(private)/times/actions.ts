@@ -12,7 +12,6 @@ interface TeamData {
 }
 
 export async function createTeamAction(newTeam: TeamData) {
-  const token = ""; // Ajuste para pegar o token de forma segura
   try {
     const result = await createTeam(newTeam);
     revalidateTag("/times");
@@ -27,7 +26,6 @@ export async function updateTeamAction(
   id: string,
   updatedTeam: Partial<TeamData>
 ) {
-  const token = ""; // Ajuste para pegar o token de forma segura
   try {
     const result = await updateTeam(id, updatedTeam);
     revalidateTag("/times");
@@ -39,7 +37,6 @@ export async function updateTeamAction(
 }
 
 export async function deleteTeamAction(id: string) {
-  const token = ""; // Ajuste para pegar o token de forma segura
   try {
     const result = await deleteTeam(id);
     revalidateTag("/times");

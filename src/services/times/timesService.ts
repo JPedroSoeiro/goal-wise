@@ -1,13 +1,13 @@
 "use server";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0ZUBnbWFpbC5jb20iLCJuYW1lIjoidGVzdGUiLCJpYXQiOjE3NTY5MjMxMzUsImV4cCI6MTc1NjkyNjczNX0.M1mlPXIfExv8hTVyX8OqSvtGneqYtqoRNn9AsTe_b-I";
-
 interface TeamData {
   name: string;
   image: string;
 }
+
+const token =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0ZUBnbWFpbC5jb20iLCJuYW1lIjoidGVzdGUiLCJpYXQiOjE3NTcwOTQ1MTMsImV4cCI6MTc1NzA5ODExM30.HuczV2uS6bcCxcRwA2IKZ6rTqcw9HfTgrcUYQsWR2gU";
 
 export const fetchTeams = async () => {
   try {

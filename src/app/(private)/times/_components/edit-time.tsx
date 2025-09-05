@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { updateTeamAction } from "../actions";
 
 interface Team {
@@ -21,6 +22,7 @@ export function EditTime({
   onCloseAction: () => void;
   editingTeam: Team;
 }) {
+  const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -40,8 +42,16 @@ export function EditTime({
     setIsLoading(true);
     setMessage(null);
 
+    const token = session?.accessToken;
+
+    if (!token) {
+      setMessage({ type: "error", text: "Você não está autenticado." });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      await updateTeamAction(editingTeam.id, teamData);
+      await updateTeamAction(editingTeam.id, teamData); // Removido o token daqui
       setMessage({
         type: "success",
         text: `Time atualizado com sucesso!`,
@@ -83,7 +93,7 @@ export function EditTime({
           }
         />
       </div>
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button type="submit" className="w-full" disabled={isLoading || !session}>
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

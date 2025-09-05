@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { createTeamAction } from "../actions";
 
 interface Team {
@@ -15,6 +16,7 @@ interface Team {
 }
 
 export function AdcTime({ onCloseAction }: { onCloseAction: () => void }) {
+  const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -30,8 +32,16 @@ export function AdcTime({ onCloseAction }: { onCloseAction: () => void }) {
     setIsLoading(true);
     setMessage(null);
 
+    const token = session?.accessToken;
+
+    if (!token) {
+      setMessage({ type: "error", text: "Você não está autenticado." });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      await createTeamAction(teamData);
+      await createTeamAction(teamData); // Removido o token daqui
       setMessage({
         type: "success",
         text: `Time adicionado com sucesso!`,
@@ -73,7 +83,7 @@ export function AdcTime({ onCloseAction }: { onCloseAction: () => void }) {
           }
         />
       </div>
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button type="submit" className="w-full" disabled={isLoading || !session}>
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

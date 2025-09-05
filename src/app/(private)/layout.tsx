@@ -1,11 +1,9 @@
-// src/app/(private)/layout.tsx
 "use client";
 
-import type React from "react";
-
+import React from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession, signOut } from "next-auth/react"; // Importe useSession e signOut
+import { useSession, signOut } from "next-auth/react";
 import {
   Sidebar,
   SidebarContent,
@@ -31,9 +29,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Home, Users, UserCheck, Loader2 } from "lucide-react";
+import { Home, Users, UserCheck, Loader2, Settings } from "lucide-react";
 import Link from "next/link";
+import { ModalSelecionarTime } from "./_components/modal-selecionar-time";
+import { fetchTeams } from "@/services/times/timesService";
 
 const menuItems = [
   {
@@ -51,23 +60,89 @@ const menuItems = [
     url: "/jogadores",
     icon: UserCheck,
   },
+  {
+    title: "Ligas",
+    url: "/ligas",
+    icon: Users,
+  },
 ];
 
+interface Team {
+  id: string;
+  name: string;
+  image: string;
+}
+
+interface CustomSessionUser {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  teamId?: string | null;
+}
+
+interface CustomSession {
+  user?: CustomSessionUser | null;
+  expires: string;
+  accessToken: string;
+}
+
 function AppSidebar() {
-  const { data: session, status } = useSession(); // Use useSession para obter o status e dados da sessão
+  const { data: session, status } = useSession() as {
+    data: CustomSession | null;
+    status: "loading" | "authenticated" | "unauthenticated";
+  };
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+  const [teams, setTeams] = useState<Team[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    const isDark =
+      savedTheme === "dark" ||
+      (!savedTheme &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+    setIsDarkMode(isDark);
+    document.documentElement.classList.toggle("dark", isDark);
+
+    const loadTeams = async () => {
+      try {
+        const allTeams = await fetchTeams();
+        setTeams(allTeams);
+      } catch (error) {
+        console.error("Erro ao carregar times:", error);
+      }
+    };
+    loadTeams();
+  }, []);
+
+  useEffect(() => {
+    if (session?.user && !session?.user.teamId && teams.length > 0) {
+      setIsTeamModalOpen(true);
+    }
+  }, [session, teams]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      await signOut({ redirect: false }); // Não redirecione automaticamente aqui
-      router.push("/"); // Redirecione manualmente para a página inicial
+      await signOut({ redirect: false });
+      router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
       setIsLoggingOut(false);
     }
+  };
+
+  const handleThemeChange = (checked: boolean) => {
+    setIsDarkMode(checked);
+    document.documentElement.classList.toggle("dark", checked);
+    localStorage.setItem("theme", checked ? "dark" : "light");
+  };
+
+  const handleTeamSelected = () => {
+    setIsTeamModalOpen(false);
   };
 
   if (status === "loading") {
@@ -79,9 +154,8 @@ function AppSidebar() {
   }
 
   if (!session) {
-    // Se não há sessão e não está carregando, redirecione para o login
     router.push("/");
-    return null; // Não renderize nada enquanto redireciona
+    return null;
   }
 
   return (
@@ -112,6 +186,26 @@ function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="w-full justify-start space-x-2">
+              <Settings className="h-4 w-4" />
+              <span>Configurações</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <DropdownMenuLabel>Aparência</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="flex items-center justify-between">
+              <span>Modo Escuro</span>
+              <Switch
+                checked={isDarkMode}
+                onCheckedChange={handleThemeChange}
+              />
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="ghost" className="w-full justify-start">
@@ -145,6 +239,15 @@ function AppSidebar() {
           </AlertDialogContent>
         </AlertDialog>
       </SidebarFooter>
+      {session.user && (
+        <ModalSelecionarTime
+          isOpen={isTeamModalOpen}
+          onCloseAction={() => setIsTeamModalOpen(false)}
+          userId={session.user.id}
+          token={session.accessToken}
+          onTeamSelectedAction={handleTeamSelected}
+        />
+      )}
     </Sidebar>
   );
 }

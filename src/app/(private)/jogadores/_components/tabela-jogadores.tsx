@@ -90,6 +90,7 @@ export function TabelaJogadores({
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Foto</TableHead>
             <TableHead>Nome do Jogador</TableHead>
             <TableHead>Time</TableHead>
             <TableHead>Posição</TableHead>
@@ -99,12 +100,23 @@ export function TabelaJogadores({
         <TableBody>
           {currentPlayers.map((player) => (
             <TableRow key={player.id}>
+              <TableCell>
+                <div className="aspect-square relative size-12">
+                  <Image
+                    src={player.image || "/nao-ha-fotos.png"}
+                    width={48}
+                    height={48}
+                    alt={player.name}
+                    className="object-contain rounded-md"
+                  />
+                </div>
+              </TableCell>
               <TableCell className="font-medium">{player.name}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <div className="aspect-square relative size-8">
                     <Image
-                      src={player.team?.image || "/nao-ha-fotos.png"} // Corrigido aqui
+                      src={player.team?.image || "/nao-ha-fotos.png"}
                       width={50}
                       height={50}
                       alt={player.team?.name || "Sem time"}
