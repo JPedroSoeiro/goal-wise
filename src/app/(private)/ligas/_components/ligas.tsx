@@ -16,12 +16,7 @@ import { Plus } from "lucide-react";
 import { AdcLiga } from "./adc-liga";
 import { EditLiga } from "./edit-liga";
 import { CardsLigas } from "./cards-ligas";
-
-interface Liga {
-  id: number;
-  name: string;
-  image: string;
-}
+import { Liga } from "@/services/ligas/ligasService";
 
 export default function LigasPage({ ligasProps }: { ligasProps: Liga[] }) {
   const [searchTerm, setSearchTerm] = useState("");

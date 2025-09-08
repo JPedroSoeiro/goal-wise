@@ -2,7 +2,7 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0ZUBnbWFpbC5jb20iLCJuYW1lIjoiSm9hbyBQZWRybyIsImlhdCI6MTc1NzMzOTM3OCwiZXhwIjoxNzU3MzQyOTc4fQ.bnQBbcDYpMBJ3tHVW11n3xLdQJR-cgNnRhv0Mm1q1_4";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0ZUBnbWFpbC5jb20iLCJuYW1lIjoiSm9hbyBQZWRybyIsImlhdCI6MTc1NzM1NTY4MCwiZXhwIjoxNzU3MzU5MjgwfQ.v5CjitN8JVwyAwF_GBdWRyoluVYJUgSu20555xTeXNE";
 
 export async function updateUserTeamPreference(
   userId: string,

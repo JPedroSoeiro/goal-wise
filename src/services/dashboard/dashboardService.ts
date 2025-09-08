@@ -7,7 +7,7 @@ interface DashboardTotals {
 }
 
 const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0ZUBnbWFpbC5jb20iLCJuYW1lIjoidGVzdGUiLCJpYXQiOjE3NTczMzU4MDYsImV4cCI6MTc1NzMzOTQwNn0.ISCTiMckW_xPQVTp3b2NxQ3C7aUmo5Zl1gc3FnaM2u4";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0ZUBnbWFpbC5jb20iLCJuYW1lIjoiSm9hbyBQZWRybyIsImlhdCI6MTc1NzM1NTY4MCwiZXhwIjoxNzU3MzU5MjgwfQ.v5CjitN8JVwyAwF_GBdWRyoluVYJUgSu20555xTeXNE";
 
 export async function fetchDashboardTotals(): Promise<DashboardTotals> {
   return apiFetch("/dashboard/totals", { token });

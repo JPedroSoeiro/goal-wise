@@ -7,12 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { updateLigaAction } from "../../actions";
-
-interface Liga {
-  id: number;
-  name: string;
-  image: string;
-}
+import { Liga } from "@/services/ligas/ligasService";
 
 export function EditLiga({
   onCloseAction,
@@ -26,7 +21,7 @@ export function EditLiga({
     type: "success" | "error";
     text: string;
   } | null>(null);
-  const [ligaData, setLigaData] = useState({
+  const [ligaData, setLigaData] = useState<Omit<Partial<Liga>, "id">>({
     name: "",
     image: "",
   });

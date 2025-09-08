@@ -35,15 +35,12 @@ export default function Dashboard({
   teams: Team[];
   players: Player[];
 }) {
-  const positionCounts = players.reduce(
-    (acc, player) => {
-      if (player.position) {
-        acc[player.position] = (acc[player.position] || 0) + 1;
-      }
-      return acc;
-    },
-    {} as Record<string, number>
-  );
+  const positionCounts = players.reduce((acc, player) => {
+    if (player.position) {
+      acc[player.position] = (acc[player.position] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>);
 
   const chartData = POSICOES.map((posicao) => ({
     name: posicao,
@@ -60,18 +57,22 @@ export default function Dashboard({
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Times</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total de Jogadores
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{teams.length}</div>
+            <div className="text-2xl font-bold">{players.length}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Jogadores</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total de Times
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{players.length}</div>
+            <div className="text-2xl font-bold">{teams.length}</div>
           </CardContent>
         </Card>
       </div>

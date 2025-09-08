@@ -16,12 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { deleteLigaAction } from "../../actions";
-
-interface Liga {
-  id: number;
-  name: string;
-  image: string;
-}
+import { Liga } from "@/services/ligas/ligasService";
 
 export function CardsLigas({
   ligas,
