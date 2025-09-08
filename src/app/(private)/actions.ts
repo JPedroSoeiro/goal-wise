@@ -1,7 +1,20 @@
 "use server";
 import { revalidateTag } from "next/cache";
-import { createTeam, updateTeam, deleteTeam } from "../../services/times/timesService";
-import { createPlayer, updatePlayer, deletePlayer } from "../../services/jogadores/jogadoresService";
+import {
+  createTeam,
+  updateTeam,
+  deleteTeam,
+} from "../../services/times/timesService";
+import {
+  createPlayer,
+  updatePlayer,
+  deletePlayer,
+} from "../../services/jogadores/jogadoresService";
+import {
+  createLiga,
+  updateLiga,
+  deleteLiga,
+} from "../../services/ligas/ligasService";
 import { updateUserTeamPreference } from "../../services/users/usersService";
 
 interface TeamData {
@@ -16,6 +29,11 @@ interface PlayerData {
   image?: string;
 }
 
+interface LigaData {
+  name: string;
+  image?: string;
+}
+
 export async function createTeamAction(newTeam: TeamData) {
   try {
     const result = await createTeam(newTeam);
@@ -27,7 +45,10 @@ export async function createTeamAction(newTeam: TeamData) {
   }
 }
 
-export async function updateTeamAction(id: string, updatedTeam: Partial<TeamData>) {
+export async function updateTeamAction(
+  id: string,
+  updatedTeam: Partial<TeamData>
+) {
   try {
     const result = await updateTeam(id, updatedTeam);
     revalidateTag("/times");
@@ -60,7 +81,10 @@ export async function createPlayerAction(newPlayer: PlayerData) {
   }
 }
 
-export async function updatePlayerAction(id: string, updatedPlayer: Partial<PlayerData>) {
+export async function updatePlayerAction(
+  id: string,
+  updatedPlayer: Partial<PlayerData>
+) {
   try {
     const result = await updatePlayer(id, updatedPlayer);
     revalidateTag("/jogadores");
@@ -82,10 +106,53 @@ export async function deletePlayerAction(id: string) {
   }
 }
 
-export async function updateTeamPreferenceAction(userId: string, teamId: string, token: string) {
+export async function createLigaAction(newLiga: LigaData) {
+  try {
+    const result = await createLiga(newLiga);
+    revalidateTag("/ligas");
+    return result;
+  } catch (error) {
+    console.error("Erro ao criar liga:", error);
+    throw error;
+  }
+}
+
+export async function updateLigaAction(
+  id: number,
+  updatedLiga: Partial<LigaData>
+) {
+  try {
+    const result = await updateLiga(id, updatedLiga);
+    revalidateTag("/ligas");
+    return result;
+  } catch (error) {
+    console.error("Erro ao atualizar a liga:", error);
+    throw error;
+  }
+}
+
+export async function deleteLigaAction(id: number) {
+  try {
+    const result = await deleteLiga(id);
+    revalidateTag("/ligas");
+    return result;
+  } catch (error) {
+    console.error("Erro ao deletar a liga:", error);
+    throw error;
+  }
+}
+
+export async function updateUserTeamPreferenceAction(
+  userId: string,
+  teamId: string,
+  token: string
+) {
   try {
     const result = await updateUserTeamPreference(userId, teamId);
     revalidateTag("/dashboard");
     return result;
   } catch (error) {
-    console.error("Erro ao atualizar
+    console.error("Erro ao atualizar time de preferência:", error);
+    throw error;
+  }
+}

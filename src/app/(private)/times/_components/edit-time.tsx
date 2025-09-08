@@ -6,13 +6,26 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { updateTeamAction } from "../actions";
+import { fetchLigas } from "@/services/ligas/ligasService";
 
 interface Team {
   id: string;
   name: string;
   image: string;
+  ligaId: string;
+}
+
+interface Liga {
+  id: number;
+  name: string;
 }
 
 export function EditTime({
@@ -22,19 +35,34 @@ export function EditTime({
   onCloseAction: () => void;
   editingTeam: Team;
 }) {
-  const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const [ligas, setLigas] = useState<Liga[]>([]);
   const [teamData, setTeamData] = useState({
     name: "",
     image: "",
+    ligaId: "",
   });
 
   useEffect(() => {
-    setTeamData({ name: editingTeam.name, image: editingTeam.image });
+    setTeamData({
+      name: editingTeam.name,
+      image: editingTeam.image,
+      ligaId: editingTeam.ligaId,
+    });
+
+    const loadLigas = async () => {
+      try {
+        const allLigas = await fetchLigas();
+        setLigas(allLigas);
+      } catch (error) {
+        console.error("Erro ao carregar ligas:", error);
+      }
+    };
+    loadLigas();
   }, [editingTeam]);
 
   const handleAction = async (e: React.FormEvent) => {
@@ -42,16 +70,8 @@ export function EditTime({
     setIsLoading(true);
     setMessage(null);
 
-    const token = session?.accessToken;
-
-    if (!token) {
-      setMessage({ type: "error", text: "Você não está autenticado." });
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      await updateTeamAction(editingTeam.id, teamData); // Removido o token daqui
+      await updateTeamAction(editingTeam.id, teamData);
       setMessage({
         type: "success",
         text: `Time atualizado com sucesso!`,
@@ -83,6 +103,24 @@ export function EditTime({
           }
           required
         />
+        <Label htmlFor="teamLiga">Liga</Label>
+        <Select
+          value={teamData.ligaId}
+          onValueChange={(value: string) =>
+            setTeamData((prev) => ({ ...prev, ligaId: value }))
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione uma liga" />
+          </SelectTrigger>
+          <SelectContent>
+            {ligas.map((liga) => (
+              <SelectItem key={liga.id} value={liga.id.toString()}>
+                {liga.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Label htmlFor="teamImage">URL do Escudo</Label>
         <Input
           id="teamImage"
@@ -93,7 +131,7 @@ export function EditTime({
           }
         />
       </div>
-      <Button type="submit" className="w-full" disabled={isLoading || !session}>
+      <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

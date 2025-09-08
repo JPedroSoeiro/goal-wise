@@ -1,13 +1,20 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createTeamAction } from "../actions";
+import { fetchLigas } from "@/services/ligas/ligasService";
 
 interface Team {
   id: string;
@@ -15,33 +22,43 @@ interface Team {
   image: string;
 }
 
+interface Liga {
+  id: number;
+  name: string;
+}
+
 export function AdcTime({ onCloseAction }: { onCloseAction: () => void }) {
-  const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const [ligas, setLigas] = useState<Liga[]>([]);
   const [teamData, setTeamData] = useState({
     name: "",
     image: "",
+    ligaId: "",
   });
+
+  useEffect(() => {
+    const loadLigas = async () => {
+      try {
+        const allLigas = await fetchLigas();
+        setLigas(allLigas);
+      } catch (error) {
+        console.error("Erro ao carregar ligas:", error);
+      }
+    };
+    loadLigas();
+  }, []);
 
   const handleAction = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage(null);
 
-    const token = session?.accessToken;
-
-    if (!token) {
-      setMessage({ type: "error", text: "Você não está autenticado." });
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      await createTeamAction(teamData); // Removido o token daqui
+      await createTeamAction(teamData);
       setMessage({
         type: "success",
         text: `Time adicionado com sucesso!`,
@@ -73,6 +90,23 @@ export function AdcTime({ onCloseAction }: { onCloseAction: () => void }) {
           }
           required
         />
+        <Label htmlFor="teamLiga">Liga</Label>
+        <Select
+          onValueChange={(value: string) =>
+            setTeamData((prev) => ({ ...prev, ligaId: value }))
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione uma liga" />
+          </SelectTrigger>
+          <SelectContent>
+            {ligas.map((liga) => (
+              <SelectItem key={liga.id} value={liga.id.toString()}>
+                {liga.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Label htmlFor="teamImage">URL do Escudo</Label>
         <Input
           id="teamImage"
@@ -83,7 +117,7 @@ export function AdcTime({ onCloseAction }: { onCloseAction: () => void }) {
           }
         />
       </div>
-      <Button type="submit" className="w-full" disabled={isLoading || !session}>
+      <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
