@@ -1,10 +1,11 @@
+// src/app/_components/register-form.tsx
 "use client";
 
 import * as React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { supabase } from "@/lib/supabase"; // Importe o cliente Supabase
+import { registerUser } from "@/services/users/usersService";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,11 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 
+// CORREÇÃO: Desestruture 'onSwitchToLogin' aqui para separá-lo do ...props
 export function RegisterForm({
   className,
+  onSwitchToLogin,
   ...props
 }: React.ComponentProps<"div"> & {
-  onSwitchToLogin?: () => void; // Nova prop para alternar para o login
+  onSwitchToLogin?: () => void;
 }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,67 +37,36 @@ export function RegisterForm({
     setMessage(null);
 
     try {
-      // Primeiro, tenta registrar o usuário no Supabase
-      const { data, error } = await supabase.auth.signUp({
+      await registerUser({
+        name: fullName,
         email,
         password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-        },
       });
 
-      if (error) {
+      const signInResult = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (signInResult?.ok) {
+        setMessage({
+          type: "success",
+          text: "Registro bem-sucedido! Redirecionando...",
+        });
+        router.refresh();
+      } else {
         setMessage({
           type: "error",
           text:
-            error.message || "Falha no registro. Por favor, tente novamente.",
-        });
-        return;
-      }
-
-      // Se o registro no Supabase for bem-sucedido, tenta logar o usuário via NextAuth
-      if (data.user) {
-        setMessage({
-          type: "success",
-          text: "Registro bem-sucedido! Redirecionando para login...",
-        });
-
-        // Tenta logar o usuário automaticamente após o registro usando NextAuth
-        const signInResult = await signIn("credentials", {
-          redirect: false,
-          email,
-          password,
-        });
-
-        if (signInResult?.ok) {
-          setTimeout(() => {
-            router.push("/dashboard"); // Redireciona para o dashboard
-          }, 1500);
-        } else {
-          setMessage({
-            type: "error",
-            text:
-              signInResult?.error || "Login automático falhou após o registro.",
-          });
-        }
-      } else {
-        setMessage({
-          type: "success",
-          text: "Registro bem-sucedido! Verifique seu e-mail para confirmar a conta.",
+            signInResult?.error || "Falha no login automático após o registro.",
         });
       }
-
-      // Reset form
-      setFullName("");
-      setEmail("");
-      setPassword("");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro durante o registro:", error);
       setMessage({
         type: "error",
-        text: "Falha no registro. Por favor, tente novamente.",
+        text: error.message || "Falha no registro. Por favor, tente novamente.",
       });
     } finally {
       setIsLoading(false);
@@ -103,12 +75,12 @@ export function RegisterForm({
 
   return (
     <>
-      {" "}
-      {/* Adicionado Fragment */}
+      {/* O `...props` passado para o Card agora não contém mais o onSwitchToLogin */}
       <Card className={cn("overflow-hidden", className)} {...props}>
         <CardContent className="grid p-0 md:grid-cols-2">
           <form className="p-6 md:p-8" onSubmit={handleRegister}>
             <div className="flex flex-col gap-6">
+              {/* Conteúdo do formulário... */}
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Crie sua conta</h1>
                 <p className="text-balance text-muted-foreground">
@@ -178,7 +150,7 @@ export function RegisterForm({
               <div className="text-center text-sm">
                 Já tem uma conta?{" "}
                 <a
-                  onClick={props.onSwitchToLogin}
+                  onClick={onSwitchToLogin}
                   className="underline underline-offset-4 cursor-pointer"
                 >
                   Entrar

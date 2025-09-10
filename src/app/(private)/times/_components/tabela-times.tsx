@@ -44,7 +44,7 @@ export function TableTimes({
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [teamToDelete, setTeamToDelete] = React.useState<Team | null>(null);
-  const teamsPerPage = 4;
+  const teamsPerPage = 5;
 
   const totalPages = Math.ceil(teams.length / teamsPerPage);
   const currentTeams = teams.slice(
@@ -83,9 +83,10 @@ export function TableTimes({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Nome do Time</TableHead>
-            <TableHead>Escudo</TableHead>
-            <TableHead className="w-[100px]">Ações</TableHead>
+            <TableHead>ESCUDO</TableHead>
+            <TableHead>NOME DO TIME</TableHead>
+
+            <TableHead className="w-[100px]">AÇÕES</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -95,7 +96,6 @@ export function TableTimes({
               onClick={() => onTeamClickAction(team)}
               className="cursor-pointer"
             >
-              <TableCell className="font-medium">{team.name}</TableCell>
               <TableCell>
                 <div className="aspect-square relative size-8">
                   <Image
@@ -107,6 +107,7 @@ export function TableTimes({
                   />
                 </div>
               </TableCell>
+              <TableCell className="font-medium">{team.name}</TableCell>
               <TableCell className="flex space-x-2">
                 <Button
                   variant="outline"

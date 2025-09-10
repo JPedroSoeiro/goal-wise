@@ -1,32 +1,42 @@
 "use server";
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { apiFetch } from "../api";
 
-const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0ZUBnbWFpbC5jb20iLCJuYW1lIjoiSm9hbyBQZWRybyIsImlhdCI6MTc1NzM1NTY4MCwiZXhwIjoxNzU3MzU5MjgwfQ.v5CjitN8JVwyAwF_GBdWRyoluVYJUgSu20555xTeXNE";
+interface RegisterUserData {
+  name: string;
+  email: string;
+  password: string;
+}
+
+// CORREÇÃO APLICADA AQUI
+export async function registerUser(data: RegisterUserData): Promise<any> {
+  // Define a URL base da API, lendo da variável de ambiente
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+  // Usa a URL correta para a requisição
+  const response = await fetch(`${API_URL}/api/users`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ error: "Falha ao registrar." }));
+    throw new Error(errorData.error || "Falha ao registrar.");
+  }
+
+  return response.json();
+}
 
 export async function updateUserTeamPreference(
   userId: string,
   teamId: string
 ): Promise<any> {
-  try {
-    const response = await fetch(`${API_URL}/api/users/${userId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ teamId }),
-    });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        errorData.error || "Falha ao atualizar a preferência do time"
-      );
-    }
-    const updatedUser = await response.json();
-    return updatedUser;
-  } catch (error) {
-    console.error("Erro ao atualizar time de preferência:", error);
-    throw error;
-  }
+  return apiFetch(`/api/users/${userId}`, {
+    method: "PUT",
+    body: JSON.stringify({ teamId }),
+  });
 }

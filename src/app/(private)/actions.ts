@@ -1,3 +1,4 @@
+// src/app/(private)/actions.ts
 "use server";
 import { revalidateTag } from "next/cache";
 import {
@@ -34,6 +35,7 @@ interface LigaData {
   image?: string;
 }
 
+// Actions para Times
 export async function createTeamAction(newTeam: TeamData) {
   try {
     const result = await createTeam(newTeam);
@@ -70,6 +72,7 @@ export async function deleteTeamAction(id: string) {
   }
 }
 
+// Actions para Jogadores
 export async function createPlayerAction(newPlayer: PlayerData) {
   try {
     const result = await createPlayer(newPlayer);
@@ -106,6 +109,7 @@ export async function deletePlayerAction(id: string) {
   }
 }
 
+// Actions para Ligas
 export async function createLigaAction(newLiga: LigaData) {
   try {
     const result = await createLiga(newLiga);
@@ -142,10 +146,10 @@ export async function deleteLigaAction(id: number) {
   }
 }
 
+// Action para Preferência de Time do Usuário
 export async function updateUserTeamPreferenceAction(
   userId: string,
-  teamId: string,
-  token: string
+  teamId: string
 ) {
   try {
     const result = await updateUserTeamPreference(userId, teamId);

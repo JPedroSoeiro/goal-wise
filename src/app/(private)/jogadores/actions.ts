@@ -1,3 +1,4 @@
+// src/app/(private)/jogadores/actions.ts
 "use server";
 import { revalidateTag } from "next/cache";
 import {
@@ -14,7 +15,6 @@ interface PlayerData {
 }
 
 export async function createPlayerAction(newPlayer: PlayerData) {
-  const token = ""; // Ajuste para pegar o token de forma segura
   try {
     const result = await createPlayer(newPlayer);
     revalidateTag("/jogadores");
@@ -29,7 +29,6 @@ export async function updatePlayerAction(
   id: string,
   updatedPlayer: Partial<PlayerData>
 ) {
-  const token = ""; // Ajuste para pegar o token de forma segura
   try {
     const result = await updatePlayer(id, updatedPlayer);
     revalidateTag("/jogadores");
@@ -41,7 +40,6 @@ export async function updatePlayerAction(
 }
 
 export async function deletePlayerAction(id: string) {
-  const token = ""; // Ajuste para pegar o token de forma segura
   try {
     const result = await deletePlayer(id);
     revalidateTag("/jogadores");

@@ -1,3 +1,4 @@
+// src/app/(private)/_components/modal-selecionar-time.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -15,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateTeamPreferenceAction } from "../actions";
+import { updateUserTeamPreferenceAction } from "../actions";
 import { fetchTeams } from "@/services/times/timesService";
 
 interface Team {
@@ -27,14 +28,13 @@ export function ModalSelecionarTime({
   isOpen,
   onCloseAction,
   userId,
-  token,
   onTeamSelectedAction,
 }: {
   isOpen: boolean;
   onCloseAction: () => void;
   userId: string;
-  token: string;
-  onTeamSelectedAction: () => void;
+  // A função agora espera receber o ID do time como argumento
+  onTeamSelectedAction: (teamId: string) => void;
 }) {
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
@@ -53,12 +53,13 @@ export function ModalSelecionarTime({
   }, []);
 
   const handleSelectTeam = async () => {
-    if (!selectedTeamId || !userId || !token) return;
+    if (!selectedTeamId || !userId) return;
 
     setIsLoading(true);
     try {
-      await updateTeamPreferenceAction(userId, selectedTeamId, token);
-      onTeamSelectedAction();
+      await updateUserTeamPreferenceAction(userId, selectedTeamId);
+      // Passa o ID do time selecionado para a função do layout
+      onTeamSelectedAction(selectedTeamId);
       onCloseAction();
     } catch (error) {
       console.error("Erro ao salvar time de preferência:", error);
@@ -68,6 +69,7 @@ export function ModalSelecionarTime({
   };
 
   return (
+    // O restante do seu JSX continua o mesmo...
     <Dialog open={isOpen}>
       <DialogContent>
         <DialogHeader>

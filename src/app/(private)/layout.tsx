@@ -1,9 +1,11 @@
+// src/app/(private)/layout.tsx
 "use client";
 
 import React from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import Image from "next/image"; // IMPORTADO
 import {
   Sidebar,
   SidebarContent,
@@ -87,9 +89,14 @@ interface CustomSession {
 }
 
 function AppSidebar() {
-  const { data: session, status } = useSession() as {
+  const {
+    data: session,
+    status,
+    update,
+  } = useSession() as {
     data: CustomSession | null;
     status: "loading" | "authenticated" | "unauthenticated";
+    update: any;
   };
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -118,10 +125,10 @@ function AppSidebar() {
   }, []);
 
   useEffect(() => {
-    if (session?.user && !session?.user.teamId && teams.length > 0) {
+    if (status === "authenticated" && session?.user && !session.user.teamId) {
       setIsTeamModalOpen(true);
     }
-  }, [session, teams]);
+  }, [session, status]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -141,9 +148,13 @@ function AppSidebar() {
     localStorage.setItem("theme", checked ? "dark" : "light");
   };
 
-  const handleTeamSelected = () => {
+  const handleTeamSelected = async (newTeamId: string) => {
+    await update({ teamId: newTeamId });
     setIsTeamModalOpen(false);
   };
+
+  // Encontra o time do usuário para pegar a imagem do escudo
+  const userTeam = teams.find((team) => team.id === session?.user?.teamId);
 
   if (status === "loading") {
     return (
@@ -208,8 +219,19 @@ function AppSidebar() {
 
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" className="w-full justify-start">
-              {session.user?.name || session.user?.email || "Usuário"}{" "}
+            <Button variant="ghost" className="w-full justify-start space-x-0">
+              {userTeam && (
+                <Image
+                  src={userTeam.image || "/nao-ha-fotos.png"}
+                  width={16}
+                  height={16}
+                  alt={userTeam.name}
+                  className="object-contain rounded-md"
+                />
+              )}
+              <span>
+                {session.user?.name || session.user?.email || "Usuário"}
+              </span>
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
@@ -244,7 +266,6 @@ function AppSidebar() {
           isOpen={isTeamModalOpen}
           onCloseAction={() => setIsTeamModalOpen(false)}
           userId={session.user.id}
-          token={session.accessToken}
           onTeamSelectedAction={handleTeamSelected}
         />
       )}

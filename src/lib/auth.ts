@@ -1,12 +1,15 @@
-import { AuthOptions, Session, User } from "next-auth";
+// src/lib/auth.ts
+import { AuthOptions, User } from "next-auth"; // Removido Session que não é usado diretamente aqui
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// ... (as declarações de module continuam as mesmas) ...
 declare module "next-auth" {
   interface User {
     token?: string;
+    teamId?: string | null;
   }
   interface Session {
     user: {
@@ -14,6 +17,7 @@ declare module "next-auth" {
       name?: string | null;
       email?: string | null;
       image?: string | null;
+      teamId?: string | null;
     };
     accessToken?: string;
   }
@@ -22,11 +26,13 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     accessToken?: string;
+    teamId?: string | null;
   }
 }
 
 export const authOptions: AuthOptions = {
   providers: [
+    // ... Seu CredentialsProvider continua o mesmo
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -49,10 +55,10 @@ export const authOptions: AuthOptions = {
           }),
         });
 
-        const user = await response.json();
+        const data = await response.json();
 
-        if (response.ok && user) {
-          return user;
+        if (response.ok && data.user) {
+          return { ...data.user, token: data.token };
         }
 
         return null;
@@ -63,14 +69,23 @@ export const authOptions: AuthOptions = {
     signIn: "/",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    // CORREÇÃO: Adicionado 'trigger' e 'session' para lidar com atualizações
+    async jwt({ token, user, trigger, session }) {
+      // No login inicial
       if (user) {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
         token.image = user.image;
         token.accessToken = user.token;
+        token.teamId = user.teamId;
       }
+
+      // Quando a função `update` é chamada no cliente
+      if (trigger === "update" && session?.teamId) {
+        token.teamId = session.teamId;
+      }
+
       return token;
     },
 
@@ -80,6 +95,7 @@ export const authOptions: AuthOptions = {
         session.user.name = token.name as string;
         session.user.email = token.email as string;
         session.user.image = token.image as string;
+        session.user.teamId = token.teamId as string;
         session.accessToken = token.accessToken;
       }
       return session;
