@@ -41,7 +41,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Home, Users, UserCheck, Loader2, Settings } from "lucide-react";
+import {
+  Home,
+  Users,
+  UserCheck,
+  LayoutDashboard,
+  Trophy,
+  PersonStanding,
+  Shield,
+  Loader2,
+  Settings,
+  LoaderPinwheel,
+  Text,
+  MessageSquare,
+  MessagesSquare,
+} from "lucide-react";
 import Link from "next/link";
 import { ModalSelecionarTime } from "./_components/modal-selecionar-time";
 import { fetchTeams } from "@/services/times/timesService";
@@ -55,17 +69,37 @@ const menuItems = [
   {
     title: "Times",
     url: "/times",
-    icon: Users,
+    icon: Shield,
   },
   {
     title: "Jogadores",
     url: "/jogadores",
-    icon: UserCheck,
+    icon: PersonStanding,
   },
   {
     title: "Ligas",
     url: "/ligas",
-    icon: Users,
+    icon: Trophy,
+  },
+  {
+    title: "Jogos",
+    url: "/",
+    icon: LoaderPinwheel,
+  },
+  {
+    title: "Tabela",
+    url: "/",
+    icon: Text,
+  },
+  {
+    title: "Chat",
+    url: "/",
+    icon: MessageSquare,
+  },
+  {
+    title: "Chat IA",
+    url: "/",
+    icon: MessagesSquare,
   },
 ];
 

@@ -1,11 +1,10 @@
 // src/lib/auth.ts
-import { AuthOptions, User } from "next-auth"; // Removido Session que não é usado diretamente aqui
+import { AuthOptions, User } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// ... (as declarações de module continuam as mesmas) ...
 declare module "next-auth" {
   interface User {
     token?: string;
@@ -32,7 +31,6 @@ declare module "next-auth/jwt" {
 
 export const authOptions: AuthOptions = {
   providers: [
-    // ... Seu CredentialsProvider continua o mesmo
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -57,6 +55,11 @@ export const authOptions: AuthOptions = {
 
         const data = await response.json();
 
+        // CORREÇÃO: Se a resposta não for 'ok', lança um erro com a mensagem da API
+        if (!response.ok) {
+          throw new Error(data.error || "Falha na autenticação.");
+        }
+
         if (response.ok && data.user) {
           return { ...data.user, token: data.token };
         }
@@ -69,9 +72,7 @@ export const authOptions: AuthOptions = {
     signIn: "/",
   },
   callbacks: {
-    // CORREÇÃO: Adicionado 'trigger' e 'session' para lidar com atualizações
     async jwt({ token, user, trigger, session }) {
-      // No login inicial
       if (user) {
         token.id = user.id;
         token.name = user.name;
@@ -81,7 +82,6 @@ export const authOptions: AuthOptions = {
         token.teamId = user.teamId;
       }
 
-      // Quando a função `update` é chamada no cliente
       if (trigger === "update" && session?.teamId) {
         token.teamId = session.teamId;
       }
@@ -101,6 +101,5 @@ export const authOptions: AuthOptions = {
       return session;
     },
   },
-
   secret: process.env.AUTH_SECRET,
 };
