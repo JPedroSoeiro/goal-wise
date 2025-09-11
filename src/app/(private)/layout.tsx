@@ -93,7 +93,7 @@ const menuItems = [
   },
   {
     title: "Chat",
-    url: "/",
+    url: "/chat",
     icon: MessageSquare,
   },
   {
@@ -190,17 +190,18 @@ function AppSidebar() {
   // Encontra o time do usuário para pegar a imagem do escudo
   const userTeam = teams.find((team) => team.id === session?.user?.teamId);
 
-  if (status === "loading") {
+  useEffect(() => {
+    if (status !== "loading" && !session) {
+      router.push("/");
+    }
+  }, [session, status, router]);
+
+  if (status === "loading" || !session) {
     return (
       <div className="flex items-center justify-center h-screen w-full">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
-  }
-
-  if (!session) {
-    router.push("/");
-    return null;
   }
 
   return (
