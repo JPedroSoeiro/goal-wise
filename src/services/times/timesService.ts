@@ -6,9 +6,10 @@ interface TeamData {
   image: string;
 }
 
-export const fetchTeams = async () => {
+export const fetchTeams = async (token?: string) => {
   return apiFetch("/api/teams", {
     next: { tags: ["/times"] },
+    token: token,
   });
 };
 

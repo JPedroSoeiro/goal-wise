@@ -8,12 +8,12 @@ interface PlayerData {
   image?: string;
 }
 
-export const fetchPlayers = async () => {
+export const fetchPlayers = async (token?: string) => {
   return apiFetch("/api/players", {
     next: { tags: ["/jogadores"] },
+    token: token,
   });
 };
-
 export const createPlayer = async (newPlayer: PlayerData) => {
   return apiFetch("/api/players", {
     method: "POST",
