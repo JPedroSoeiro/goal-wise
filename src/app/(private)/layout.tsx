@@ -43,9 +43,6 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
   Home,
-  Users,
-  UserCheck,
-  LayoutDashboard,
   Trophy,
   PersonStanding,
   Shield,
@@ -54,7 +51,7 @@ import {
   LoaderPinwheel,
   Text,
   MessageSquare,
-  MessagesSquare,
+  MessageSquareMore,
 } from "lucide-react";
 import Link from "next/link";
 import { ModalSelecionarTime } from "./_components/modal-selecionar-time";
@@ -92,14 +89,14 @@ const menuItems = [
     icon: Text,
   },
   {
+    title: "Chat Geral",
+    url: "/chatGeral",
+    icon: MessageSquareMore,
+  },
+  {
     title: "Chat",
     url: "/chat",
     icon: MessageSquare,
-  },
-  {
-    title: "Chat IA",
-    url: "/",
-    icon: MessagesSquare,
   },
 ];
 
