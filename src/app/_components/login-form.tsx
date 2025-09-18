@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { loginSchema } from "@/lib/validations";
 
 export function LoginForm({
   className,
@@ -21,6 +22,7 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -30,7 +32,22 @@ export function LoginForm({
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors({});
     setMessage(null);
+
+    const validationResult = loginSchema.safeParse({ email, password });
+
+    if (!validationResult.success) {
+      const fieldErrors: { [key: string]: string } = {};
+      validationResult.error.issues.forEach((err) => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const result = await signIn("credentials", {
@@ -41,13 +58,16 @@ export function LoginForm({
 
       if (result?.ok) {
         setMessage({ type: "success", text: "Login bem-sucedido!" });
-
         router.push("/dashboard");
       } else {
-        setMessage({
-          type: "error",
-          text: result?.error || "Login falhou. Verifique suas credenciais.",
-        });
+        if (result?.error?.includes("Credenciais inválidas")) {
+          setErrors({ form: "Email ou senha incorretos." });
+        } else {
+          setMessage({
+            type: "error",
+            text: result?.error || "Login falhou. Verifique suas credenciais.",
+          });
+        }
       }
     } catch (error) {
       console.error("Erro durante o login:", error);
@@ -62,8 +82,6 @@ export function LoginForm({
 
   return (
     <>
-      {" "}
-      {/* Fragmento aberto */}
       <Card className={cn("overflow-hidden", className)} {...props}>
         <CardContent className="grid p-0 md:grid-cols-2">
           <form className="p-6 md:p-8" onSubmit={handleLogin}>
@@ -84,6 +102,9 @@ export function LoginForm({
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
+                {errors.email && (
+                  <p className="text-sm text-red-600">{errors.email}</p>
+                )}
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
@@ -103,7 +124,15 @@ export function LoginForm({
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+                {errors.password && (
+                  <p className="text-sm text-red-600">{errors.password}</p>
+                )}
               </div>
+              {errors.form && (
+                <p className="text-sm text-red-600 text-center">
+                  {errors.form}
+                </p>
+              )}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>

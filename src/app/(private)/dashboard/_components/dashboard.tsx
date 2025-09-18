@@ -28,12 +28,20 @@ interface Player {
   position: string;
 }
 
+// 1. Defina a interface para Liga
+interface Liga {
+  id: number;
+  name: string;
+}
+
 export default function Dashboard({
   teams,
   players,
+  ligas, // 2. Receba as ligas como prop
 }: {
   teams: Team[];
   players: Player[];
+  ligas: Liga[]; // 3. Adicione a tipagem para as ligas
 }) {
   const positionCounts = players.reduce((acc, player) => {
     if (player.position) {
@@ -73,6 +81,17 @@ export default function Dashboard({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{teams.length}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total de Ligas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{ligas.length}</div>
           </CardContent>
         </Card>
       </div>

@@ -1,4 +1,3 @@
-// src/app/_components/register-form.tsx
 "use client";
 
 import * as React from "react";
@@ -12,8 +11,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { registerSchema } from "@/lib/validations";
+import { ZodError } from "zod";
 
-// CORREÇÃO: Desestruture 'onSwitchToLogin' aqui para separá-lo do ...props
 export function RegisterForm({
   className,
   onSwitchToLogin,
@@ -25,6 +25,7 @@ export function RegisterForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -34,7 +35,26 @@ export function RegisterForm({
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors({});
     setMessage(null);
+
+    const validationResult = registerSchema.safeParse({
+      name: fullName,
+      email,
+      password,
+    });
+
+    if (!validationResult.success) {
+      const fieldErrors: { [key: string]: string } = {};
+      validationResult.error.issues.forEach((err) => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      setIsLoading(false);
+      return;
+    }
 
     try {
       await registerUser({
@@ -54,7 +74,7 @@ export function RegisterForm({
           type: "success",
           text: "Registro bem-sucedido! Redirecionando...",
         });
-        router.refresh();
+        router.push("/dashboard");
       } else {
         setMessage({
           type: "error",
@@ -75,18 +95,10 @@ export function RegisterForm({
 
   return (
     <>
-      {/* O `...props` passado para o Card agora não contém mais o onSwitchToLogin */}
       <Card className={cn("overflow-hidden", className)} {...props}>
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8" onSubmit={handleRegister}>
+          <form className="p-6 md:p-8" onSubmit={handleRegister} noValidate>
             <div className="flex flex-col gap-6">
-              {/* Conteúdo do formulário... */}
-              <div className="flex flex-col items-center text-center">
-                <h1 className="text-2xl font-bold">Crie sua conta</h1>
-                <p className="text-balance text-muted-foreground">
-                  Comece sua jornada hoje
-                </p>
-              </div>
               <div className="grid gap-2">
                 <Label htmlFor="fullName">Nome Completo</Label>
                 <Input
@@ -97,6 +109,9 @@ export function RegisterForm({
                   onChange={(e) => setFullName(e.target.value)}
                   required
                 />
+                {errors.name && (
+                  <p className="text-sm text-red-600">{errors.name}</p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
@@ -108,6 +123,9 @@ export function RegisterForm({
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
+                {errors.email && (
+                  <p className="text-sm text-red-600">{errors.email}</p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Senha</Label>
@@ -119,6 +137,9 @@ export function RegisterForm({
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+                {errors.password && (
+                  <p className="text-sm text-red-600">{errors.password}</p>
+                )}
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
@@ -146,7 +167,6 @@ export function RegisterForm({
                   Ou continue com
                 </span>
               </div>
-
               <div className="text-center text-sm">
                 Já tem uma conta?{" "}
                 <a
